@@ -7,6 +7,7 @@ Käyttö: python turnausluotain.py <turnauksen-url>
 import re
 import sys
 
+import anthropic
 import requests
 from bs4 import BeautifulSoup
 
@@ -174,9 +175,35 @@ def etsi_joukkueet(url: str) -> list[str]:
 
 def tiivista_llm(html: str) -> str:
     """Tuottaa sivusta parin lauseen suomenkielisen tiivistelmän LLM:llä
-    (Anthropicin Claude). Toteutus puuttuu vielä; ks. CLAUDE.md.
+    (Anthropicin Claude). Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
     """
-    raise NotImplementedError("LLM-tiivistelmää ei ole vielä toteutettu")
+    otsikko, rivit = poimi_teksti(html)
+    teksti = "\n".join(rivit)
+
+    client = anthropic.Anthropic()
+    vastaus = client.messages.create(
+        model="claude-opus-4-8",
+        max_tokens=1000,
+        system=(
+            "Tiivistät harrasteturnausten www-sivuja suomeksi. Vastaat aina "
+            "pelkällä tiivistelmällä ilman johdantoa tai jälkisanoja."
+        ),
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    "Tiivistä parilla lauseella, millainen turnaus tällä "
+                    "sivulla kuvataan: laji, ajankohta, paikkakunta ja "
+                    "kenelle turnaus on suunnattu.\n\n"
+                    f"Sivun otsikko: {otsikko}\n\n"
+                    f"Sivun sisältö:\n{teksti}"
+                ),
+            }
+        ],
+    )
+    if vastaus.stop_reason == "refusal":
+        raise RuntimeError("LLM kieltäytyi tiivistämästä sivua")
+    return "".join(b.text for b in vastaus.content if b.type == "text").strip()
 
 
 def tiivista(url: str) -> str:
