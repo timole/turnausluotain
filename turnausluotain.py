@@ -163,6 +163,15 @@ def muotoile(tulos: dict) -> str:
     return "\n".join(osat)
 
 
+def etsi_joukkueet(url: str) -> list[str]:
+    """Vaihe 2: etsii turnaussivulta ilmoittautuneet joukkueet.
+
+    Seuraa tarvittaessa linkkejä alasivuille tai ulkoisiin palveluihin.
+    Toteutus puuttuu vielä; ks. CLAUDE.md, Vaihe 2.
+    """
+    return []
+
+
 def tiivista(url: str) -> str:
     return muotoile(analysoi(hae_sivu(url)))
 
