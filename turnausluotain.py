@@ -135,25 +135,36 @@ def poimi_ilmoittautuminen(rivit: list[str], teksti: str) -> list[str]:
     return tiedot or [EI_LOYTYNYT]
 
 
-def tiivista(url: str) -> str:
-    html = hae_sivu(url)
+def analysoi(html: str) -> dict:
+    """Analysoi turnaussivun HTML:n ja palauttaa poimitut tiedot sanakirjana."""
     otsikko, rivit = poimi_teksti(html)
     teksti = "\n".join(rivit)
+    return {
+        "otsikko": otsikko or (rivit[0] if rivit else EI_LOYTYNYT),
+        "laji": tunnista_laji(teksti),
+        "ajankohta": tunnista_ajankohta(teksti),
+        "paikkakunta": tunnista_paikkakunnat(teksti),
+        "sarjat": poimi_osio(rivit, "sarjat") or [EI_LOYTYNYT],
+        "ilmoittautuminen": poimi_ilmoittautuminen(rivit, teksti),
+    }
 
-    sarjat = poimi_osio(rivit, "sarjat") or [EI_LOYTYNYT]
-    ilmo = poimi_ilmoittautuminen(rivit, teksti)
 
+def muotoile(tulos: dict) -> str:
     osat = [
-        f"TURNAUS: {otsikko or rivit[0] if rivit else EI_LOYTYNYT}",
-        f"Laji:        {tunnista_laji(teksti)}",
-        f"Ajankohta:   {tunnista_ajankohta(teksti)}",
-        f"Paikkakunta: {tunnista_paikkakunnat(teksti)}",
+        f"TURNAUS: {tulos['otsikko']}",
+        f"Laji:        {tulos['laji']}",
+        f"Ajankohta:   {tulos['ajankohta']}",
+        f"Paikkakunta: {tulos['paikkakunta']}",
         "Sarjat:",
-        *(f"  - {s}" for s in sarjat),
+        *(f"  - {s}" for s in tulos["sarjat"]),
         "Ilmoittautuminen:",
-        *(f"  {r}" for r in ilmo),
+        *(f"  {r}" for r in tulos["ilmoittautuminen"]),
     ]
     return "\n".join(osat)
+
+
+def tiivista(url: str) -> str:
+    return muotoile(analysoi(hae_sivu(url)))
 
 
 def main() -> int:

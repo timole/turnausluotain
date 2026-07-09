@@ -37,6 +37,18 @@ Kaikki on yhdessä tiedostossa `turnausluotain.py`:
    - ilmoittautumistiedot (yhteyshenkilö, sähköposti, puhelin, maksu)
 4. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
 
+Analyysi on erotettu hausta: `analysoi(html)` palauttaa tiedot sanakirjana ja
+`muotoile(tulos)` tuottaa tekstin, joten analyysiä voi testata ilman verkkoa.
+
+## Testit
+
+BDD-tyyliset regressiotestit (`tests/test_regressio.py`, skenaariot
+docstringeissä Given/When/Then-muodossa) hakevat oikeat sivut verkosta:
+
+```bash
+.venv/bin/python -m pytest -v
+```
+
 ## Vaihe 2: Ilmoittautuneet joukkueet
 
 Tavoite: luotain etsii turnaussivulta myös ilmoittautuneet joukkueet,
