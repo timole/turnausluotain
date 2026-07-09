@@ -6,6 +6,15 @@ ja ilmoittautumistiedot.
 
 Esimerkkisyöte: https://www.woudit.fi/etusivu/saimaa-turnaus/
 
+## Työskentelytapa
+
+- Työskentelemme pala kerrallaan: yksi selkeästi rajattu tehtävä per pyyntö.
+- Ehdota aina tehtävälista (3–5 pientä askelta), toteuta niistä yksi, ja kysy
+  haluanko jatkaa seuraavaan.
+- Jokaisen onnistuneen askeleen jälkeen: commit.
+- Kerro aina lopuksi yhdellä lauseella: mitä tehtiin, mikä on seuraava askel.
+- Jos tehtävä paisuu, pysähdy ja ehdota pilkkomista.
+
 ## Ympäristö
 
 - Python 3.14, virtuaaliympäristö kansiossa `.venv/`
