@@ -78,6 +78,17 @@ Testihavainnot Palloliitto-sivulta (korjattavaa nykyisissä heuristiikoissa):
 - Sarjat (M35–M75) jäivät löytymättä.
 - Ilmoittautumisosio keräsi liikaa sisältöä.
 
+## Backlog
+
+Kun käyttäjä sanoo "backlogille: X", lisää X tähän listaan yhdellä rivillä
+kysymättä lisää.
+
+- Malli konfiguroitavaksi: LLM-malli luetaan ympäristömuuttujasta
+  (esim. `TURNAUSLUOTAIN_MODEL`, oletus `claude-haiku-4-5`) tai
+  komentoriviparametrista (`--model`). Mahdollistaa myös muiden tarjoajien
+  mallit myöhemmin (esim. paikallinen Gemma Ollamalla), jolloin LLM-kutsu
+  abstrahoidaan oman rajapinnan taakse.
+
 ## Huomioita
 
 - MVP ei käytä LLM:ää; tiivistelmä syntyy heuristiikoilla. Jatkossa analyysin
