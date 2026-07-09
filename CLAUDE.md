@@ -20,8 +20,9 @@ Esimerkkisyöte: https://www.woudit.fi/etusivu/saimaa-turnaus/
 - Python 3.14, virtuaaliympäristö kansiossa `.venv/`
 - Riippuvuudet: `requests`, `beautifulsoup4`, `anthropic`, `pytest`
   (ks. `requirements.txt`)
-- Anthropic API -avain tiedostossa `.env` (`ANTHROPIC_API_KEY=...`),
-  ei versionhallinnassa
+- Konfiguraatio tiedostossa `.env` (ei versionhallinnassa): kopioi pohjaksi
+  `.env.example` ja täytä `ANTHROPIC_API_KEY`; valinnainen
+  `TURNAUSLUOTAIN_MODEL` vaihtaa LLM-mallin (oletus `claude-haiku-4-5`)
 
 ```bash
 python3 -m venv .venv
@@ -32,7 +33,11 @@ python3 -m venv .venv
 
 ```bash
 .venv/bin/python turnausluotain.py <turnauksen-url>
+.venv/bin/python turnausluotain.py --model claude-opus-4-8 <turnauksen-url>
 ```
+
+Mallin etusijajärjestys: `--model` > `TURNAUSLUOTAIN_MODEL` (shell-ympäristö
+voittaa `.env`-tiedoston) > oletus `claude-haiku-4-5`.
 
 ## Arkkitehtuuri (MVP)
 
@@ -47,10 +52,10 @@ Kaikki on yhdessä tiedostossa `turnausluotain.py`:
    - paikkakunta vertaamalla tekstiä suomalaisten kaupunkien listaan
    - sarjat "Sarjat"-otsikon jälkeisistä riveistä
    - ilmoittautumistiedot (yhteyshenkilö, sähköposti, puhelin, maksu)
-4. **LLM-tiivistelmä** – `tiivista_llm(html)` pyytää Anthropicin
-   `claude-opus-4-8`-mallilta parin lauseen suomenkielisen tiivistelmän
-   sivusta. Vaatii `ANTHROPIC_API_KEY`:n (luetaan `.env`-tiedostosta, joka on
-   gitignoressa); ilman avainta CLI toimii pelkillä heuristiikoilla.
+4. **LLM-tiivistelmä** – `tiivista_llm(html, malli)` pyytää Anthropicin
+   mallilta (ks. Ajaminen; oletus `claude-haiku-4-5`) parin lauseen
+   suomenkielisen tiivistelmän sivusta. Vaatii `ANTHROPIC_API_KEY`:n (luetaan
+   `.env`-tiedostosta); ilman avainta CLI toimii pelkillä heuristiikoilla.
 5. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
 
 Analyysi on erotettu hausta: `analysoi(html)` palauttaa tiedot sanakirjana ja
@@ -90,11 +95,9 @@ Testihavainnot Palloliitto-sivulta (korjattavaa nykyisissä heuristiikoissa):
 Kun käyttäjä sanoo "backlogille: X", lisää X tähän listaan yhdellä rivillä
 kysymättä lisää.
 
-- Malli konfiguroitavaksi: LLM-malli luetaan ympäristömuuttujasta
-  (esim. `TURNAUSLUOTAIN_MODEL`, oletus `claude-haiku-4-5`) tai
-  komentoriviparametrista (`--model`). Mahdollistaa myös muiden tarjoajien
-  mallit myöhemmin (esim. paikallinen Gemma Ollamalla), jolloin LLM-kutsu
-  abstrahoidaan oman rajapinnan taakse.
+- Muiden tarjoajien mallit (esim. paikallinen Gemma Ollamalla): LLM-kutsu
+  abstrahoidaan oman rajapinnan taakse. (Anthropic-mallin vaihto on jo
+  toteutettu: `--model` / `TURNAUSLUOTAIN_MODEL`.)
 
 ## Huomioita
 

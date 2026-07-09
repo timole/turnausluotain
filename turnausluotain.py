@@ -4,6 +4,7 @@
 Käyttö: python turnausluotain.py <turnauksen-url>
 """
 
+import argparse
 import os
 import re
 import sys
@@ -230,26 +231,32 @@ def tiivista_llm(html: str, malli: str | None = None) -> str:
     return "".join(b.text for b in vastaus.content if b.type == "text").strip()
 
 
-def tiivista(url: str) -> str:
+def tiivista(url: str, malli: str | None = None) -> str:
     html = hae_sivu(url)
-    osat = [muotoile(analysoi(html)), "LLM-tiivistelmä:"]
+    osat = [muotoile(analysoi(html)), f"LLM-tiivistelmä ({valitse_malli(malli)}):"]
     if not os.environ.get("ANTHROPIC_API_KEY"):
         osat.append("  ei käytettävissä (ANTHROPIC_API_KEY puuttuu)")
     else:
         try:
-            osat.append(f"  {tiivista_llm(html)}")
+            osat.append(f"  {tiivista_llm(html, malli)}")
         except (anthropic.APIError, RuntimeError) as virhe:
             osat.append(f"  epäonnistui: {virhe}")
     return "\n".join(osat)
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        print(f"Käyttö: {sys.argv[0]} <turnauksen-url>", file=sys.stderr)
-        return 2
+    parser = argparse.ArgumentParser(
+        description="Tuottaa suomenkielisen tiivistelmän harrasteturnauksen www-sivusta."
+    )
+    parser.add_argument("url", help="turnaussivun osoite")
+    parser.add_argument(
+        "--model",
+        help=f"LLM-malli (oletus TURNAUSLUOTAIN_MODEL tai {OLETUSMALLI})",
+    )
+    args = parser.parse_args()
     lataa_env()
     try:
-        print(tiivista(sys.argv[1]))
+        print(tiivista(args.url, args.model))
     except requests.RequestException as virhe:
         print(f"Sivun haku epäonnistui: {virhe}", file=sys.stderr)
         return 1
