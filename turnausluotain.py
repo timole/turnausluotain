@@ -4,14 +4,32 @@
 Käyttö: python turnausluotain.py <turnauksen-url>
 """
 
+import os
 import re
 import sys
+from pathlib import Path
 
 import anthropic
 import requests
 from bs4 import BeautifulSoup
 
 EI_LOYTYNYT = "ei löytynyt sivulta"
+
+
+def lataa_env() -> None:
+    """Lataa projektin juuren .env-tiedoston ympäristömuuttujiksi.
+
+    Jo asetettuja ympäristömuuttujia ei ylikirjoiteta.
+    """
+    env_tiedosto = Path(__file__).resolve().parent / ".env"
+    if not env_tiedosto.exists():
+        return
+    for rivi in env_tiedosto.read_text(encoding="utf-8").splitlines():
+        rivi = rivi.strip()
+        if not rivi or rivi.startswith("#") or "=" not in rivi:
+            continue
+        avain, _, arvo = rivi.partition("=")
+        os.environ.setdefault(avain.strip(), arvo.strip())
 
 LAJIT = {
     "jääkiekko": ["jääkiekko", "jäähalli", "kiekko", "kaukalo"],
@@ -207,13 +225,23 @@ def tiivista_llm(html: str) -> str:
 
 
 def tiivista(url: str) -> str:
-    return muotoile(analysoi(hae_sivu(url)))
+    html = hae_sivu(url)
+    osat = [muotoile(analysoi(html)), "LLM-tiivistelmä:"]
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        osat.append("  ei käytettävissä (ANTHROPIC_API_KEY puuttuu)")
+    else:
+        try:
+            osat.append(f"  {tiivista_llm(html)}")
+        except (anthropic.APIError, RuntimeError) as virhe:
+            osat.append(f"  epäonnistui: {virhe}")
+    return "\n".join(osat)
 
 
 def main() -> int:
     if len(sys.argv) != 2:
         print(f"Käyttö: {sys.argv[0]} <turnauksen-url>", file=sys.stderr)
         return 2
+    lataa_env()
     try:
         print(tiivista(sys.argv[1]))
     except requests.RequestException as virhe:

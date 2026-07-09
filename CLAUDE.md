@@ -18,7 +18,10 @@ Esimerkkisyöte: https://www.woudit.fi/etusivu/saimaa-turnaus/
 ## Ympäristö
 
 - Python 3.14, virtuaaliympäristö kansiossa `.venv/`
-- Riippuvuudet: `requests`, `beautifulsoup4` (ks. `requirements.txt`)
+- Riippuvuudet: `requests`, `beautifulsoup4`, `anthropic`, `pytest`
+  (ks. `requirements.txt`)
+- Anthropic API -avain tiedostossa `.env` (`ANTHROPIC_API_KEY=...`),
+  ei versionhallinnassa
 
 ```bash
 python3 -m venv .venv
@@ -44,7 +47,11 @@ Kaikki on yhdessä tiedostossa `turnausluotain.py`:
    - paikkakunta vertaamalla tekstiä suomalaisten kaupunkien listaan
    - sarjat "Sarjat"-otsikon jälkeisistä riveistä
    - ilmoittautumistiedot (yhteyshenkilö, sähköposti, puhelin, maksu)
-4. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
+4. **LLM-tiivistelmä** – `tiivista_llm(html)` pyytää Anthropicin
+   `claude-opus-4-8`-mallilta parin lauseen suomenkielisen tiivistelmän
+   sivusta. Vaatii `ANTHROPIC_API_KEY`:n (luetaan `.env`-tiedostosta, joka on
+   gitignoressa); ilman avainta CLI toimii pelkillä heuristiikoilla.
+5. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
 
 Analyysi on erotettu hausta: `analysoi(html)` palauttaa tiedot sanakirjana ja
 `muotoile(tulos)` tuottaa tekstin, joten analyysiä voi testata ilman verkkoa.
@@ -91,9 +98,9 @@ kysymättä lisää.
 
 ## Huomioita
 
-- MVP ei käytä LLM:ää; tiivistelmä syntyy heuristiikoilla. Jatkossa analyysin
-  voi korvata Claude API -kutsulla, jolloin vapaamuotoisemmatkin sivut
-  jäsentyvät.
+- Rakenteiset kentät (laji, ajankohta, sarjat, ...) poimitaan heuristiikoilla;
+  LLM tuottaa vain vapaamuotoisen tiivistelmän. Jatkossa heuristiikatkin voi
+  korvata LLM-kutsulla, jolloin vapaamuotoisemmat sivut jäsentyvät paremmin.
 - Heuristiikat on viritetty tyypillisiä suomalaisia turnaussivuja vasten;
   puuttuva tieto raportoidaan arvolla "ei löytynyt sivulta", ei kaadeta ajoa.
 - JavaScript-renderöityjä sivuja MVP ei tue (vain palvelimen palauttama HTML).
