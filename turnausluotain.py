@@ -14,6 +14,12 @@ import requests
 from bs4 import BeautifulSoup
 
 EI_LOYTYNYT = "ei löytynyt sivulta"
+OLETUSMALLI = "claude-haiku-4-5"
+
+
+def valitse_malli(cli_malli: str | None = None) -> str:
+    """Valitsee LLM-mallin: --model > TURNAUSLUOTAIN_MODEL > oletus."""
+    return cli_malli or os.environ.get("TURNAUSLUOTAIN_MODEL") or OLETUSMALLI
 
 
 def lataa_env() -> None:
@@ -191,7 +197,7 @@ def etsi_joukkueet(url: str) -> list[str]:
     return []
 
 
-def tiivista_llm(html: str) -> str:
+def tiivista_llm(html: str, malli: str | None = None) -> str:
     """Tuottaa sivusta parin lauseen suomenkielisen tiivistelmän LLM:llä
     (Anthropicin Claude). Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
     """
@@ -200,7 +206,7 @@ def tiivista_llm(html: str) -> str:
 
     client = anthropic.Anthropic()
     vastaus = client.messages.create(
-        model="claude-opus-4-8",
+        model=valitse_malli(malli),
         max_tokens=1000,
         system=(
             "Tiivistät harrasteturnausten www-sivuja suomeksi. Vastaat aina "
