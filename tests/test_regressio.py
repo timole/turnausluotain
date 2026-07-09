@@ -4,9 +4,18 @@ Testit hakevat oikeat sivut verkosta (kerran per testiajo) ja ajavat
 analyysin haetulle HTML:lle.
 """
 
+import os
+
 import pytest
 
-from turnausluotain import EI_LOYTYNYT, analysoi, etsi_joukkueet, hae_sivu, muotoile
+from turnausluotain import (
+    EI_LOYTYNYT,
+    analysoi,
+    etsi_joukkueet,
+    hae_sivu,
+    muotoile,
+    tiivista_llm,
+)
 
 WOUDIT_URL = "https://www.woudit.fi/etusivu/saimaa-turnaus/"
 PALLOLIITTO_URL = (
@@ -90,3 +99,25 @@ def test_palloliiton_ilmoittautuneet_joukkueet():
     joukkueet = etsi_joukkueet(PALLOLIITTO_URL)
 
     assert any("Gnistan" in joukkue for joukkue in joukkueet)
+
+
+@pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY"),
+    reason="ANTHROPIC_API_KEY puuttuu ympäristöstä",
+)
+def test_llm_tiivistelma_woudit_turnaussivusta():
+    """Scenario: LLM-tiivistelmä Woudit-turnaussivusta
+
+    Given turnaussivu Saimaa-turnaus on julkaistu verkossa
+      (https://www.woudit.fi/etusivu/saimaa-turnaus/)
+    And Anthropic API -avain on asetettu ympäristöön (ANTHROPIC_API_KEY)
+    When manageri pyytää luotaimelta LLM-tiivistelmän sivusta
+    Then tiivistelmä on parin lauseen mittainen suomenkielinen kuvaus
+    And tiivistelmä kertoo, että kyse on turnauksesta
+    """
+    tiivistelma = tiivista_llm(hae_sivu(WOUDIT_URL))
+
+    assert isinstance(tiivistelma, str)
+    tiivistelma = tiivistelma.strip()
+    assert 30 <= len(tiivistelma) <= 600, "parin lauseen mittainen"
+    assert "turnau" in tiivistelma.lower() or "jääkiek" in tiivistelma.lower()

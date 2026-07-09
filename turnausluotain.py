@@ -172,6 +172,13 @@ def etsi_joukkueet(url: str) -> list[str]:
     return []
 
 
+def tiivista_llm(html: str) -> str:
+    """Tuottaa sivusta parin lauseen suomenkielisen tiivistelmän LLM:llä
+    (Anthropicin Claude). Toteutus puuttuu vielä; ks. CLAUDE.md.
+    """
+    raise NotImplementedError("LLM-tiivistelmää ei ole vielä toteutettu")
+
+
 def tiivista(url: str) -> str:
     return muotoile(analysoi(hae_sivu(url)))
 
