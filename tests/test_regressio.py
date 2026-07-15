@@ -11,6 +11,7 @@ import pytest
 from turnausluotain import (
     EI_LOYTYNYT,
     analysoi,
+    analysoi_llm,
     etsi_joukkueet,
     hae_sivu,
     muotoile,
@@ -101,6 +102,31 @@ def test_palloliiton_ilmoittautuneet_joukkueet():
     joukkueet = etsi_joukkueet(PALLOLIITTO_URL)
 
     assert any("Gnistan" in joukkue for joukkue in joukkueet)
+
+
+@pytest.mark.llm
+@pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY"),
+    reason="ANTHROPIC_API_KEY puuttuu ympäristöstä",
+)
+def test_llm_analysoi_palloliiton_turnaussivun_perustiedot():
+    """Scenario: LLM poimii perustiedot sivulta, jolla heuristiikat erehtyvät
+
+    Given turnaussivu KKI-lopputurnaukset, jolla jokaisella sarjalla on oma
+      pelipäivänsä ja ikärajat on annettu syntymäpäivinä (esim. 31.12.1996)
+    And heuristiikat poimivat ajankohdaksi ikärajapäivän eivätkä löydä sarjoja
+    When manageri pyytää luotaimelta perustiedot LLM-poiminnalla
+    Then laji on jalkapallo
+    And ajankohta on turnauskesältä 2026, ei ikärajan syntymäpäivä
+    And sarjoista löytyvät ainakin M35 ja M75
+    """
+    tulos = analysoi_llm(hae_sivu(PALLOLIITTO_URL))
+
+    assert tulos["laji"] == "jalkapallo"
+    assert "2026" in tulos["ajankohta"]
+    assert "31.12.19" not in tulos["ajankohta"], "ikärajapäivä ei ole ajankohta"
+    sarjat = " ".join(tulos["sarjat"])
+    assert "M35" in sarjat and "M75" in sarjat
 
 
 @pytest.mark.llm

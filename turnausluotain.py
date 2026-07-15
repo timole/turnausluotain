@@ -296,12 +296,16 @@ def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) 
     return []
 
 
-def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
-    """Poimii sivulta ilmoittautuneet joukkueet LLM:llä (Anthropicin Claude).
+def kysy_llm(
+    jarjestelma: str,
+    kysymys: str,
+    html: str,
+    malli: str | None = None,
+    max_tokens: int = 1000,
+) -> str:
+    """Kysyy LLM:ltä (Anthropicin Claude) kysymyksen sivun sisällöstä.
 
-    Palauttaa listan sanakirjoja {"nimi": ..., "sarja": ...}; sarja on tyhjä
-    merkkijono, jos se ei näy sivulla. Tyhjä lista, jos sivulla ei ole
-    joukkuelistaa. Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
+    Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
     """
     otsikko, rivit = poimi_teksti(html)
     teksti = "\n".join(rivit).replace("\xa0", " ")
@@ -309,55 +313,13 @@ def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
     client = anthropic.Anthropic()
     vastaus = client.messages.create(
         model=valitse_malli(malli),
-        max_tokens=4000,
-        system=(
-            "Poimit harrasteturnausten www-sivuilta turnaukseen "
-            "ilmoittautuneet joukkueet. Vastaat aina pelkällä JSON-taulukolla "
-            "ilman selityksiä tai koodiaitoja."
-        ),
+        max_tokens=max_tokens,
+        system=jarjestelma,
         messages=[
             {
                 "role": "user",
                 "content": (
-                    "Poimi sivulta turnaukseen ilmoittautuneet tai osallistuvat "
-                    "joukkueet. Palauta JSON-taulukko, jonka alkiot ovat muotoa "
-                    '{"nimi": "...", "sarja": "..."}. Kirjoita sarja-kenttään '
-                    "sarja tai lohko, johon joukkue kuuluu (esim. \"60+\"), tai "
-                    "tyhjä merkkijono jos se ei käy ilmi. Älä keksi joukkueita: "
-                    "jos sivulla ei ole joukkuelistaa, palauta [].\n\n"
-                    f"Sivun otsikko: {otsikko}\n\n"
-                    f"Sivun sisältö:\n{teksti}"
-                ),
-            }
-        ],
-    )
-    raaka = "".join(b.text for b in vastaus.content if b.type == "text").strip()
-    raaka = re.sub(r"^```\w*\s*|\s*```$", "", raaka)
-    return json.loads(raaka)
-
-
-def tiivista_llm(html: str, malli: str | None = None) -> str:
-    """Tuottaa sivusta parin lauseen suomenkielisen tiivistelmän LLM:llä
-    (Anthropicin Claude). Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
-    """
-    otsikko, rivit = poimi_teksti(html)
-    teksti = "\n".join(rivit)
-
-    client = anthropic.Anthropic()
-    vastaus = client.messages.create(
-        model=valitse_malli(malli),
-        max_tokens=1000,
-        system=(
-            "Tiivistät harrasteturnausten www-sivuja suomeksi. Vastaat aina "
-            "pelkällä tiivistelmällä ilman johdantoa tai jälkisanoja."
-        ),
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    "Tiivistä parilla lauseella, millainen turnaus tällä "
-                    "sivulla kuvataan: laji, ajankohta, paikkakunta ja "
-                    "kenelle turnaus on suunnattu.\n\n"
+                    f"{kysymys}\n\n"
                     f"Sivun otsikko: {otsikko}\n\n"
                     f"Sivun sisältö:\n{teksti}"
                 ),
@@ -365,8 +327,85 @@ def tiivista_llm(html: str, malli: str | None = None) -> str:
         ],
     )
     if vastaus.stop_reason == "refusal":
-        raise RuntimeError("LLM kieltäytyi tiivistämästä sivua")
+        raise RuntimeError("LLM kieltäytyi vastaamasta")
     return "".join(b.text for b in vastaus.content if b.type == "text").strip()
+
+
+def jasenna_json(raaka: str):
+    """Jäsentää LLM:n vastauksen JSONiksi; sietää koodiaidat (```json ... ```)."""
+    return json.loads(re.sub(r"^```\w*\s*|\s*```$", "", raaka))
+
+
+def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
+    """Poimii sivulta ilmoittautuneet joukkueet LLM:llä.
+
+    Palauttaa listan sanakirjoja {"nimi": ..., "sarja": ...}; sarja on tyhjä
+    merkkijono, jos se ei näy sivulla. Tyhjä lista, jos sivulla ei ole
+    joukkuelistaa.
+    """
+    raaka = kysy_llm(
+        "Poimit harrasteturnausten www-sivuilta turnaukseen ilmoittautuneet "
+        "joukkueet. Vastaat aina pelkällä JSON-taulukolla ilman selityksiä "
+        "tai koodiaitoja.",
+        "Poimi sivulta turnaukseen ilmoittautuneet tai osallistuvat "
+        "joukkueet. Palauta JSON-taulukko, jonka alkiot ovat muotoa "
+        '{"nimi": "...", "sarja": "..."}. Kirjoita sarja-kenttään '
+        "sarja tai lohko, johon joukkue kuuluu (esim. \"60+\"), tai "
+        "tyhjä merkkijono jos se ei käy ilmi. Älä keksi joukkueita: "
+        "jos sivulla ei ole joukkuelistaa, palauta [].",
+        html,
+        malli,
+        max_tokens=4000,
+    )
+    return jasenna_json(raaka)
+
+
+def analysoi_llm(html: str, malli: str | None = None) -> dict:
+    """Poimii turnauksen perustiedot LLM:llä; palauttaa saman muotoisen
+    sanakirjan kuin analysoi(), joten muotoile() toimii kummankin tuloksella.
+    """
+    raaka = kysy_llm(
+        "Poimit harrasteturnausten www-sivuilta turnauksen perustiedot. "
+        "Vastaat aina pelkällä JSON-oliolla ilman selityksiä tai koodiaitoja.",
+        "Poimi sivulta turnauksen perustiedot JSON-oliona, jonka muoto on\n"
+        '{"laji": "...", "ajankohta": "...", "paikkakunta": "...", '
+        '"sarjat": ["..."], "ilmoittautuminen": ["..."]}\n'
+        "- laji pienellä alkukirjaimella (esim. jalkapallo, jääkiekko)\n"
+        "- ajankohta on turnauksen pelipäivät, EI pelaajien ikärajoihin "
+        "liittyviä syntymäpäiviä; jos sarjoilla on eri pelipäivät, anna "
+        "kokonaisväli tai lyhyt kuvaus\n"
+        "- sarjat: sarjojen tai ikäluokkien nimet listana\n"
+        "- ilmoittautuminen: enintään viisi tiivistä riviä (miten ja mihin "
+        "mennessä ilmoittaudutaan, yhteystieto, maksu)\n"
+        "- jos tieto ei käy ilmi sivulta, käytä tyhjää merkkijonoa tai "
+        "tyhjää listaa; älä keksi mitään",
+        html,
+        malli,
+        max_tokens=2000,
+    )
+    tiedot = jasenna_json(raaka)
+    otsikko, rivit = poimi_teksti(html)
+    return {
+        "otsikko": otsikko or (rivit[0] if rivit else EI_LOYTYNYT),
+        "laji": tiedot.get("laji") or EI_LOYTYNYT,
+        "ajankohta": tiedot.get("ajankohta") or EI_LOYTYNYT,
+        "paikkakunta": tiedot.get("paikkakunta") or EI_LOYTYNYT,
+        "sarjat": tiedot.get("sarjat") or [EI_LOYTYNYT],
+        "ilmoittautuminen": tiedot.get("ilmoittautuminen") or [EI_LOYTYNYT],
+    }
+
+
+def tiivista_llm(html: str, malli: str | None = None) -> str:
+    """Tuottaa sivusta parin lauseen suomenkielisen tiivistelmän LLM:llä."""
+    return kysy_llm(
+        "Tiivistät harrasteturnausten www-sivuja suomeksi. Vastaat aina "
+        "pelkällä tiivistelmällä ilman johdantoa tai jälkisanoja.",
+        "Tiivistä parilla lauseella, millainen turnaus tällä "
+        "sivulla kuvataan: laji, ajankohta, paikkakunta ja "
+        "kenelle turnaus on suunnattu.",
+        html,
+        malli,
+    )
 
 
 def tiivista(url: str, malli: str | None = None) -> str:
