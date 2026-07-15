@@ -1,0 +1,119 @@
+$ python turnausluotain.py --paikalla to --joukkue "Hiki-Hockey Seniors" --sijat \
+      https://www.woudit.fi/etusivu/saimaa-turnaus/
+
+TURNAUS: Linnan Woudit - Saimaa turnaus 2026
+Laji:        jääkiekko
+Ajankohta:   30.7. – 2.8.2026
+Paikkakunta: Savonlinna, Tanhuvaara, Rantasalmi
+Sarjat:
+  - 35+
+  - 40+
+  - 45+
+  - 50+
+  - 55+
+  - 60+
+  - 65+
+  - 70+
+  - Naiset avoin sarja
+Ilmoittautuminen:
+  Turnauspäällikkö Harri Eliala
+  woudit@gmail.com
+  +358 40 9100230
+  Turnausmaksu 680 euroa, lasku lähetetään sähköpostiin
+  Rahastonhoitaja lähettää laskun joukkueen yhteyshenkilölle
+HARJOITUSVASTUSTAJAT (paikalla to)
+Oma joukkue: Hiki-Hockey Seniors (60+, A1, la-su)  [Miehet 60+ B 2.]
+
+Varmasti paikalla (pelaa to): 25
+  * KoPo 60 (60+, B, to-pe)  [Miehet 60+ B 4.]
+  * Hamarin Elohurtat (60+, B, to-pe)
+  * Wanhat Ketut (60+, B, to-pe)
+  * Höntsä Team (60+, B, to-pe)
+  * JPK Oldboys (60+, B, to-pe)
+    Huru-Ukot (50+, B1, to-pe)
+    Viuho -77 (50+, B1, to-pe)
+    Vimpelin Veto (50+, B1, to-pe)
+    Hock`n Holl (50+, B2, to-pe)
+    Pelimiehet (50+, B2, to-pe)
+    Susipapat 50 (50+, B2, to-pe)
+    FIN Extremes (70+, A, to-pe)
+    Wanhat Ketterät 70 (70+, A, to-pe)
+    Starikat (70+, A, to-pe)
+    Red & White 70 (70+, A, to-pe)
+    Mansen Ketut 70 (70+, A, to-pe)
+    Hockey Club 65 (70+, B, to-pe)
+    Stadin Starat (70+, B, to-pe)
+    Kiekko-Weskut 70 (70+, B, to-pe)
+    XO Players (70+, B, to-pe)
+    SaPKo (Naisten avoin sarja, to-pe)
+    SeRoPi (Naisten avoin sarja, to-pe)
+    Jiäkisut (Naisten avoin sarja, to-pe)
+    Parasta Ennen (Naisten avoin sarja, to-pe)
+    Saipa Ladyt (Naisten avoin sarja, to-pe)
+
+Mahdollisesti paikalla (pelaa vasta seuraavana päivänä): 21
+    Talvisalo Traitors Black (35+, A, pe-la)
+    KoPo 35 (35+, A, pe-la)
+    HeSu HC (35+, A, pe-la)
+    Turistit (35+, B, pe-la)
+    Sapko Pässit ja Pukit (35+, B, pe-la)
+    Musikat 35 (35+, B, pe-la)
+    Linnan Woudit 40 (40+, A, pe-la)
+    Pulicans (40+, A, pe-la)
+    SaPKo -81 (40+, B, pe-la)
+    Talvisalo Traitors White (40+, B, pe-la)
+    Inno-Team (40+, B, pe-la)
+    KoPo 45 (45+, pe-la)
+    Hakkapeliitat N ia (45+, pe-la)
+    Red Foxes (45+, pe-la)
+    MacGyverit (45+, pe-la)
+    Kiekko-Weskut 65 (65+, B1, pe-la)
+    Laakasijat (65+, B1, pe-la)
+    RETRO (65+, B1, pe-la)
+    Linnan Waarit (65+, B2, pe-la)
+    Told Boys (65+, B2, pe-la)
+    Iki-Haukat (65+, B2, pe-la)
+
+* = sama sarja kuin omalla joukkueella (tasot vertailukelpoisia)
+[Miehet 60+ …] = sija edellisessä turnauksessa; vain oman sarjan sijat haetaan, eivätkä eri sarjojen sijat ole vertailukelpoisia
+EDELLISEN TURNAUKSEN PARHAUSJÄRJESTYS (Miehet 60+):
+  A1-taso:
+     1. Wanhat Ketterät 60
+     2. Porin Pappasalamat 60
+  A2-taso:
+     3. Voitto-Vaarit 60
+     4. Mansen Ketut 60
+  A1-taso:
+     5. Pelivaarit
+  A2-taso:
+     6. Reds
+  B-taso:
+     1. Susipapat
+     2. Hiki-Hockey Seniors
+     3. Told Boys
+     4. KoPo 60
+     5. Iki-Haukat
+LLM-tiivistelmä (claude-haiku-4-5):
+  Kyseessä on veteraanijääkiekkoturnaukseen, jonka 46. editioniota järjestetään 30.7.–2.8.2026 Savonlinnassa, Tanhuvaraarassa ja Rantalmessa. Turnaus on suunnattu miehille ikäluokissa 35+ 70+ sekä naisille, joista kukin ikäluokka pelaa omassa sarjassaan.
+
+--- Ajoloki (stderr) ---
+20:31:26 selain käynnistetty (5.5 s)
+20:31:32 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/ (10.7 s, 44 kt)
+20:31:32 LLM-kysely: perustiedot (claude-haiku-4-5)
+20:31:40   vastaus 8.0 s, 1642 + 233 tokenia, 0.0028 $
+20:31:40 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+20:31:42   vastaus 1.4 s, 1694 + 26 tokenia, 0.0018 $
+20:31:42 joukkueita ei pääsivulla, seurataan linkkiä https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/
+20:31:45 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/ (3.4 s, 42 kt)
+20:31:45 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+20:31:53   vastaus 7.4 s, 1901 + 1169 tokenia, 0.0077 $
+20:31:53 etsitään tulospalvelua linkistä https://www.woudit.fi/etusivu/saimaa-turnaus/tulokset2023/
+20:31:55 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/tulokset2023/ (2.6 s, 34 kt)
+20:31:55 etsitään tulospalvelua linkistä https://gameresultsonline.com/linnan-woudit/saimaa-turnaus-2025
+20:31:58 haettu https://gameresultsonline.com/linnan-woudit/saimaa-turnaus-2025 (2.1 s, 12 kt)
+20:32:00 haettu https://gameresultsonline.com/linnan-woudit/saimaa-turnaus-2025/11922/groups (2.0 s, 28 kt)
+20:32:00 LLM-kysely: edellisvuoden sarjataulukko (claude-haiku-4-5)
+20:32:01   vastaus 1.7 s, 1533 + 154 tokenia, 0.0023 $
+20:32:01 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
+20:32:06   vastaus 4.0 s, 1421 + 114 tokenia, 0.0020 $
+20:32:06 LLM-käyttö yhteensä: 8191 syöte- ja 1696 tulostetokenia, ~0.0167 $

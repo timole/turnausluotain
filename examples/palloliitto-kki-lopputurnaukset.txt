@@ -2,8 +2,8 @@ $ python turnausluotain.py https://www.palloliitto.fi/kilpailut/turnaukset-ja-lo
 
 TURNAUS: KKI-lopputurnaukset - Palloliitto.fi
 Laji:        jalkapallo
-Ajankohta:   kesä-syyskuu 2026 (heinä-syyskuu)
-Paikkakunta: useita paikkakuntia (Eerikkilä, Helsinki, Kuopio, Oulu)
+Ajankohta:   kesä-syyskuu 2026 (kesäkuun alusta syyskuun loppuun)
+Paikkakunta: useita (Eerikkilä, Helsinki, Kuopio, Oulu)
 Sarjat:
   - N30 7v7
   - N40 7v7
@@ -18,11 +18,11 @@ Sarjat:
   - M70 7v7
   - M75 7v7
 Ilmoittautuminen:
-  Ilmoittautuminen Tasoon: M60/M65/M75 1.6. mennessä, muut 28.6. mennessä
+  Ilmoittautuminen tehdään kirjautumalla Tasoon
+  M60-, M65- ja M75-turnaukset: ilmoittautuminen 1.6. mennessä
+  Muut turnaukset: ilmoittautuminen 28.6. mennessä
   Osallistumismaksu 370 €/joukkue
-  SPL laskuttaa, maksu tilitetään järjestäjälle
-  Peruutus 30.6. jälkeen tai <4 viikkoa ennen turnausta: luovutusmaksu 2 x osallistumismaksu
-  Ulla Kaasinen +358405073211, ulla.kaasinen@palloliitto.fi
+  N40 7v7: järjestäjä nimetään osallistujien joukosta, yhteydenotto sähköpostitse
 Ilmoittautuneet joukkueet (91):
   - Esse IK 35 (M35 SM)
   - FC Kiffen (M35 SM)
@@ -99,15 +99,15 @@ Ilmoittautuneet joukkueet (91):
   - KUV (1) (M65 SM)
   - Valtti (M65 SM)
   - WJK/Aikamiehet (M65 SM)
-  - FC Lohja (Pekka Hämäläinen M70 SM)
-  - IFK Mariehamn (Pekka Hämäläinen M70 SM)
-  - Iltatähti (Pekka Hämäläinen M70 SM)
-  - Kamppi (Pekka Hämäläinen M70 SM)
-  - KaVo (Pekka Hämäläinen M70 SM)
-  - Pallas/Konkarit (Pekka Hämäläinen M70 SM)
-  - PoPa/Wanhat Herrat (Pekka Hämäläinen M70 SM)
-  - Valtti (Pekka Hämäläinen M70 SM)
-  - WJK/Aikamiehet (Pekka Hämäläinen M70 SM)
+  - FC Lohja (M70 SM)
+  - IFK Mariehamn (M70 SM)
+  - Iltatähti (M70 SM)
+  - Kamppi (M70 SM)
+  - KaVo (M70 SM)
+  - Pallas/Konkarit (M70 SM)
+  - PoPa/Wanhat Herrat (M70 SM)
+  - Valtti (M70 SM)
+  - WJK/Aikamiehet (M70 SM)
   - FC Lohja/M75 (M75 - Suomen herruus)
   - Kamppi (M75 - Suomen herruus)
   - KäPa (M75 - Suomen herruus)
@@ -116,18 +116,19 @@ Ilmoittautuneet joukkueet (91):
   - RaKe/Nostalgia (N30 SM)
   - TuWe/3 (N30 SM)
 LLM-tiivistelmä (claude-haiku-4-5):
-  Suomen Palloliitto järjestää vuosittain kesä-syyskuussa KKI-lopputurnauksia, joissa pelataan jalkapallon SM-tasoisesti eri ikäluokissa. Turnaukset on suunnattu 30 vuotta täyttäneille naisille ja 35 vuotta täyttäneille miehille, ja ne järjestetään eri puolilla Suomea useissa paikkakunnissa kuten Helsingin, Kuopion, Oulussa ja Eerikkilässä.
+  Suomen Palloliitto järjestää vuosittain kesä-syyskuussa KKI-lopputurnaukset jalkapallossa miehille (M35–M75) ja naisille (N30–N40). Turnaukset on suunnattu eri puolille Suomea eri paikkakunnille ja ne pelataan 11v11- tai 7v7-pelimuodolla ikäluokasta riippuen. Turnaus on tarkoitettu harrastajille, joiden on oltava kyseisen ikäluokan seurat.
 
 --- Ajoloki (stderr) ---
-12:39:32 haettu https://www.palloliitto.fi/kilpailut/turnaukset-ja-lopputurnaukset/kki-lopputurnaukset (0.4 s, 536 kt)
-12:39:32 LLM-kysely: perustiedot (claude-haiku-4-5)
-12:39:37   vastaus 4.6 s, 5862 + 354 tokenia, 0.0076 $
-12:39:37 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
-12:39:40   vastaus 2.0 s, 5749 + 74 tokenia, 0.0061 $
-12:39:41 joukkueita ei pääsivulla, seurataan linkkiä https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26
-12:39:42 haettu https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26 (1.1 s, 54 kt)
-12:39:42 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
-12:39:47   vastaus 5.4 s, 987 + 1187 tokenia, 0.0069 $
-12:39:47 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
-12:39:50   vastaus 2.7 s, 5641 + 142 tokenia, 0.0064 $
-12:39:50 LLM-käyttö yhteensä: 18239 syöte- ja 1757 tulostetokenia, ~0.0270 $
+20:33:05 selain käynnistetty (1.3 s)
+20:33:08 haettu https://www.palloliitto.fi/kilpailut/turnaukset-ja-lopputurnaukset/kki-lopputurnaukset (3.8 s, 365 kt)
+20:33:08 LLM-kysely: perustiedot (claude-haiku-4-5)
+20:33:13   vastaus 4.5 s, 5862 + 360 tokenia, 0.0077 $
+20:33:13 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+20:33:15   vastaus 1.7 s, 5914 + 71 tokenia, 0.0063 $
+20:33:15 joukkueita ei pääsivulla, seurataan linkkiä https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26
+20:33:18 haettu https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26 (2.9 s, 54 kt)
+20:33:18 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+20:33:23   vastaus 5.3 s, 1152 + 1279 tokenia, 0.0075 $
+20:33:23 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
+20:33:26   vastaus 2.9 s, 5641 + 146 tokenia, 0.0064 $
+20:33:26 LLM-käyttö yhteensä: 18569 syöte- ja 1856 tulostetokenia, ~0.0278 $

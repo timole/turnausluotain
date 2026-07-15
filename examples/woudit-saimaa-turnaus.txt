@@ -2,8 +2,8 @@ $ python turnausluotain.py https://www.woudit.fi/etusivu/saimaa-turnaus/
 
 TURNAUS: Linnan Woudit - Saimaa turnaus 2026
 Laji:        jääkiekko
-Ajankohta:   30.7 - 2.8.2026
-Paikkakunta: Savonlinna, Rantasalmi, Tanhuvaara
+Ajankohta:   30.7–2.8.2026
+Paikkakunta: Savonlinna, Tanhuvaara, Rantasalmi
 Sarjat:
   - 35+
   - 40+
@@ -13,96 +13,98 @@ Sarjat:
   - 60+
   - 65+
   - 70+
-  - Naiset avoin
+  - Naiset avoin sarja
 Ilmoittautuminen:
   Turnauspäällikkö Harri Eliala
   woudit@gmail.com
   +358 40 9100230
-  Turnausmaksu 680 euroa, lasku lähetetään joukkueen yhteyshenkilön sähköpostiin
+  Turnausmaksu 680 euroa, lasku lähetetään sähköpostiin
+  Rahastonhoitaja lähettää laskun joukkueen yhteyshenkilön sähköpostiin
 Ilmoittautuneet joukkueet (70):
-  - SaPKo (Naisten avoin sarja)
-  - SeRoPi (Naisten avoin sarja)
-  - Jiäkisut (Naisten avoin sarja)
-  - Parasta Ennen (Naisten avoin sarja)
-  - Saipa Ladyt (Naisten avoin sarja)
-  - Talvisalo Traitors Black (35+)
-  - KoPo 35 (35+)
-  - Turistit (35+)
-  - Sapko Pässit ja Pukit (35+)
-  - HeSu HC (35+)
-  - Musikat 35 (35+)
-  - Linnan Woudit 40 (40+)
-  - SaPKo -81 (40+)
-  - Talvisalo Traitors White (40+)
-  - Pulicans (40+)
-  - Inno-Team (40+)
-  - KoPo 45 (45+)
-  - Hakkapeliitat N (45+)
-  - Red Foxes (45+)
-  - MacGyverit (45+)
-  - Lapasorsat (45+)
-  - Musikat 50 (50+ A)
-  - Porin Pappasalamat 50 (50+ A)
-  - Kilpurit (50+ A)
-  - HC Legion (50+ A)
-  - Huru-Ukot (50+ B1)
-  - Viuho -77 (50+ B1)
-  - Vimpelin Veto (50+ B1)
-  - Hock`n Holl (50+ B2)
-  - Pelimiehet (50+ B2)
-  - Susipapat 50 (50+ B2)
-  - Mansen Ketut 55 (55+)
-  - Linnan Woudit 55 (55+)
-  - Nitro-Kärpät (55+)
-  - Pussikaulat (55+)
-  - SaPKo-emigrants 55 (55+)
-  - Rangers 94 (55+)
-  - Pelivaarit (60+ A1)
-  - Mansen Ketut 60 (60+ A1)
-  - Porin Pappasalamat 60 (60+ A1)
-  - Hiki-Hockey Seniors (60+ A1)
-  - Superstars (60+ A2)
-  - Wanhat Ketterät 60 (60+ A2)
-  - Reds (60+ A2)
-  - Susipapat 60 (60+ A2)
-  - KoPo 60 (60+ B)
-  - Hamarin Elohurtat (60+ B)
-  - Wanhat Ketut (60+ B)
-  - Höntsä Team (60+ B)
-  - JPK Oldboys (60+ B)
-  - Mansen Ketut 65 (65+ A)
-  - Linnan Woudit 65 (65+ A)
-  - SUPRA (65+ A)
-  - SaPKo-emigrants 65 (65+ A)
-  - Mutalan Riplaajat (65+ A)
-  - Kiekko-Weskut 65 (65+ B1)
-  - Laakasijat (65+ B1)
-  - RETRO (65+ B1)
-  - Linnan Waarit (65+ B2)
-  - Told Boys (65+ B2)
-  - Iki-Haukat (65+ B2)
-  - FIN Extremes (70+ A)
-  - Wanhat Ketterät 70 (70+ A)
-  - Starikat (70+ A)
-  - Red & White 70 (70+ A)
-  - Mansen Ketut 70 (70+ A)
-  - Hockey Club 65 (70+ B)
-  - Stadin Starat (70+ B)
-  - Kiekko-Weskut 70 (70+ B)
-  - XO Players (70+ B)
+  - SaPKo (Savonlinna) (Naisten avoin sarja, to-pe)
+  - SeRoPi (Helsinki) (Naisten avoin sarja, to-pe)
+  - Jiäkisut (Vantaa) (Naisten avoin sarja, to-pe)
+  - Parasta Ennen (Helsinki) (Naisten avoin sarja, to-pe)
+  - Saipa Ladyt (Lappeenranta) (Naisten avoin sarja, to-pe)
+  - Talvisalo Traitors Black (Suomi) (35+, A, pe-la)
+  - KoPo 35 (Helsinki) (35+, A, pe-la)
+  - Turistit (Savonlinna) (35+, B, pe-la)
+  - Sapko Pässit ja Pukit (Suomi) (35+, B, pe-la)
+  - HeSu HC (Helsinki) (35+, A, pe-la)
+  - Musikat 35 (Joensuu) (35+, B, pe-la)
+  - Linnan Woudit 40 (40+, A, pe-la)
+  - SaPKo -81 (Suomi) (40+, B, pe-la)
+  - Talvisalo Traitors White (Suomi) (40+, B, pe-la)
+  - Pulicans (Lahti) (40+, A, pe-la)
+  - Inno-Team (Savonlinna) (40+, B, pe-la)
+  - KoPo 45 (Helsinki) (45+, pe-la)
+  - Hakkapeliitat N ia (45+, pe-la)
+  - Red Foxes (Rantasalmi) (45+, pe-la)
+  - MacGyverit (Kitee) (45+, pe-la)
+  - Lapasorsat (45+, pe-la)
+  - Musikat 50 (Joensuu) (50+, A, la-su)
+  - Porin Pappasalamat 50 (Pori) (50+, A, la-su)
+  - Kilpurit (Tampere) (50+, A, la-su)
+  - HC Legion (Helsinki) (50+, A, la-su)
+  - Huru-Ukot (Vantaa) (50+, B1, to-pe)
+  - Viuho -77 (Savonlinna) (50+, B1, to-pe)
+  - Vimpelin Veto (Vimpeli) (50+, B1, to-pe)
+  - Hock`n Holl (Hollola) (50+, B2, to-pe)
+  - Pelimiehet (Suomi) (50+, B2, to-pe)
+  - Susipapat 50 (Kitee) (50+, B2, to-pe)
+  - Mansen Ketut 55 (Tampere) (55+, la-su)
+  - Linnan Woudit 55 (55+, la-su)
+  - Nitro-Kärpät (Oulu) (55+, la-su)
+  - Pussikaulat (Jyväskylä) (55+, la-su)
+  - SaPKo-emigrants 55 (Suomi) (55+, la-su)
+  - Rangers 94(Helsinki) (55+)
+  - Pelivaarit (Jyväskylä) (60+, A1, la-su)
+  - Mansen Ketut 60 (Tampere) (60+, A1, la-su)
+  - Porin Pappasalamat 60 (Pori) (60+, A1, la-su)
+  - Superstars (Tampere) (60+, A2, la-su)
+  - Wanhat Ketterät 60 (Imatra) (60+, A2, la-su)
+  - Reds (Helsinki) (60+, A2, la-su)
+  - Susipapat 60 (Kitee) (60+, A2, la-su)
+  - Hiki-Hockey Seniors (Tampere) (60+, A1, la-su)
+  - KoPo 60 (Helsinki) (60+, B, to-pe)
+  - Hamarin Elohurrat (Porvoo) (60+, B, to-pe)
+  - Wanhat Ketut (Rantasalmi) (60+, B, to-pe)
+  - Höntsä Team (Savonlinna) (60+, B, to-pe)
+  - JPK Oldboys (Alajärvi) (60+, B, to-pe)
+  - Mansen Ketut 65 (Tampere) (65+, A, la-su)
+  - Linnan Woudit 65 (65+, A, la-su)
+  - SUPRA (Proteesimaajoukkue) (65+, A, la-su)
+  - SaPKo-emigrants 65 (Savonlinna) (65+, A, la-su)
+  - Mutalan Riplaajat (Joensuu) (65+, A, la-su)
+  - Kiekko-Weskut 65 (Tampere) (65+, B1, pe-la)
+  - Laakasijat (Varkaus) (65+, B1, pe-la)
+  - RETRO (Helsinki) (65+, B1, pe-la)
+  - Linnan Waarit (Savonlinna) (65+, B2, pe-la)
+  - Told Boys (Porvoo) (65+, B2, pe-la)
+  - Iki-Haukat (Järvenpää) (65+, B2, pe-la)
+  - FIN Extremes (Helsinki) (70+, A, to-pe)
+  - Wanhat Ketterät 70 (Imatra) (70+, A, to-pe)
+  - Starikat (Lappeenranta) (70+, A, to-pe)
+  - Red & White 70 (Lahti) (70+, A, to-pe)
+  - Mansen Ketut 70 (Tampere) (70+, A, to-pe)
+  - Hockey Club 65 (Helsinki) (70+, B, to-pe)
+  - Stadin Starat (Helsinki) (70+, B, to-pe)
+  - Kiekko-Weskut 70 (Tampere) (70+, B, to-pe)
+  - XO Players (Paimio) (70+, B, to-pe)
 LLM-tiivistelmä (claude-haiku-4-5):
-  Kyseessä on veteraanijääkiekkoturnaus, joka järjestetään 30.7.–2.8.2026 Savonlinnan, Tanhuvaaran ja Rantasalmen jäähalleissa. Turnaus on suunnattu 35–70-vuotiaille miehille ja kaikki ikäisille naisille omassa sarjassaan, ja se on Euroopan suurin veteraanijääkiekkoturnaus.
+  Kyseessä on veteraanijääkiekkoturnaus, joka järjestetään 30.7.–2.8.2026 Savonlinnassa, Tanhuvaaran ja Rantasalmen jäähalleissa. Turnaus on suunnattu 35 vuotta täyttäneille miehille (sarjat 35+–70+) sekä naisille, ja se on Euroopan suurin veteraanijääkiekkoturnaus.
 
 --- Ajoloki (stderr) ---
-12:39:13 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/ (0.9 s, 43 kt)
-12:39:13 LLM-kysely: perustiedot (claude-haiku-4-5)
-12:39:15   vastaus 2.5 s, 1642 + 234 tokenia, 0.0028 $
-12:39:16 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
-12:39:18   vastaus 2.3 s, 1529 + 97 tokenia, 0.0020 $
-12:39:18 joukkueita ei pääsivulla, seurataan linkkiä https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/
-12:39:19 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/ (0.8 s, 40 kt)
-12:39:19 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
-12:39:25   vastaus 6.1 s, 1736 + 824 tokenia, 0.0059 $
-12:39:25 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
-12:39:27   vastaus 2.3 s, 1421 + 123 tokenia, 0.0020 $
-12:39:27 LLM-käyttö yhteensä: 6328 syöte- ja 1278 tulostetokenia, ~0.0127 $
+20:32:35 selain käynnistetty (1.8 s)
+20:32:38 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/ (4.6 s, 44 kt)
+20:32:38 LLM-kysely: perustiedot (claude-haiku-4-5)
+20:32:41   vastaus 3.1 s, 1642 + 257 tokenia, 0.0029 $
+20:32:41 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+20:32:44   vastaus 2.9 s, 1694 + 26 tokenia, 0.0018 $
+20:32:44 joukkueita ei pääsivulla, seurataan linkkiä https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/
+20:32:49 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/ (4.2 s, 42 kt)
+20:32:49 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+20:32:58   vastaus 9.3 s, 1901 + 1558 tokenia, 0.0097 $
+20:32:58 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
+20:33:01   vastaus 2.5 s, 1421 + 125 tokenia, 0.0020 $
+20:33:01 LLM-käyttö yhteensä: 6658 syöte- ja 1966 tulostetokenia, ~0.0165 $

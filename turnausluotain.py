@@ -113,6 +113,9 @@ JOUKKUE_RIVI = re.compile(r"^([^()]{3,50}?)\s*\(([^()\d]{2,30})\)")
 JOUKKUELINKKI_SANAT = ("ilmoittautuneet", "otteluohjelma", "osallistujat", "joukkueet")
 MIN_JOUKKUEITA = 5
 
+# linkit edellisten vuosien tulospalveluun (esim. "Live Seuranta 2025")
+TULOSLINKKI_SANAT = ("gameresult", "tulokset", "tulospalvelu", "seuranta", "live")
+
 
 _SELAIN = {"playwright": None, "selain": None}
 
@@ -349,26 +352,57 @@ def harjoitusvastustajat(joukkueet: list[dict], paiva: str) -> tuple[list, list]
     return varmat, mahdolliset
 
 
+def etsi_sija(ranking: list[dict], nimi: str) -> str:
+    """Etsii joukkueen sijan edellisvuoden järjestyksestä nimen perusteella.
+
+    Nimet vaihtelevat vuosittain (paikkakunta mukana tai ei), joten vertailu
+    tehdään väljästi.
+    """
+    for r in ranking:
+        if r["nimi"].lower() in nimi.lower():
+            return f"{r['lohko']} {r['sija']}."
+    return ""
+
+
 def muotoile_harjoitusvastustajat(
-    joukkueet: list[dict], paiva: str, oma_nimi: str | None
+    joukkueet: list[dict],
+    paiva: str,
+    oma_nimi: str | None,
+    ranking: list[dict] | None = None,
+    ranking_sarja: str = "",
 ) -> str:
     """Muotoilee harjoitusvastustajaehdokkaat; oma sarja ensin, jos oma
-    joukkue on annettu.
+    joukkue on annettu. Edellisvuoden sija näytetään, jos ranking on haettu.
     """
+    ranking = ranking or []
     oma = next(
         (j for j in joukkueet if oma_nimi and oma_nimi.lower() in j["nimi"].lower()),
         None,
     )
+
+    def rivi(j: dict) -> str:
+        oma_sarja = bool(oma) and j["sarja"] == oma["sarja"]
+        # Sija haetaan vain oman sarjan joukkueille: ranking koskee yhtä sarjaa,
+        # ja eri sarjoissa on samannimisiä joukkueita (Susipapat 50 / 60).
+        sija = etsi_sija(ranking, j["nimi"]) if ranking and oma_sarja else ""
+        merkki = "*" if oma_sarja else " "
+        return (
+            f"  {merkki} {muotoile_joukkue(j)}"
+            + (f"  [{ranking_sarja} {sija}]" if sija else "")
+        )
+
     osat = [f"HARJOITUSVASTUSTAJAT (paikalla {paiva})"]
     if oma_nimi:
+        oma_sija = etsi_sija(ranking, oma["nimi"]) if oma and ranking else ""
         osat.append(
-            f"Oma joukkue: {muotoile_joukkue(oma)}" if oma
-            else f"Oma joukkue: {oma_nimi} – {EI_LOYTYNYT}"
+            f"Oma joukkue: {muotoile_joukkue(oma)}"
+            + (f"  [{ranking_sarja} {oma_sija}]" if oma_sija else "")
+            if oma else f"Oma joukkue: {oma_nimi} – {EI_LOYTYNYT}"
         )
     varmat, mahdolliset = harjoitusvastustajat(joukkueet, paiva)
     for otsikko, ryhma in (
         (f"Varmasti paikalla (pelaa {paiva})", varmat),
-        (f"Mahdollisesti paikalla (pelaa vasta seuraavana päivänä)", mahdolliset),
+        ("Mahdollisesti paikalla (pelaa vasta seuraavana päivänä)", mahdolliset),
     ):
         osat.append(f"\n{otsikko}: {len(ryhma)}")
         if not ryhma:
@@ -379,12 +413,29 @@ def muotoile_harjoitusvastustajat(
             ryhma,
             key=lambda j: (not (oma and j["sarja"] == oma["sarja"]), j["sarja"], j["taso"]),
         ):
-            if j is oma:
-                continue
-            merkki = "*" if oma and j["sarja"] == oma["sarja"] else " "
-            osat.append(f"  {merkki} {muotoile_joukkue(j)}")
+            if j is not oma:
+                osat.append(rivi(j))
     if oma:
         osat.append("\n* = sama sarja kuin omalla joukkueella (tasot vertailukelpoisia)")
+    if ranking:
+        osat.append(
+            f"[{ranking_sarja} …] = sija edellisessä turnauksessa; vain oman "
+            "sarjan sijat haetaan, eivätkä eri sarjojen sijat ole vertailukelpoisia"
+        )
+    return "\n".join(osat)
+
+
+def muotoile_ranking(sarja: str, ranking: list[dict]) -> str:
+    """Muotoilee edellisen turnauksen paremmuusjärjestyksen."""
+    if not ranking:
+        return f"Edellisen turnauksen sarjataulukko: {EI_LOYTYNYT}"
+    osat = [f"EDELLISEN TURNAUKSEN PARHAUSJÄRJESTYS ({sarja}):"]
+    lohko = None
+    for r in ranking:
+        if r["lohko"] != lohko:
+            lohko = r["lohko"]
+            osat.append(f"  {lohko}-taso:")
+        osat.append(f"    {r['sija']:2}. {r['nimi']}")
     return "\n".join(osat)
 
 
@@ -401,6 +452,115 @@ def etsi_joukkuelinkit(html: str, url: str) -> list[str]:
                     linkit[kohde] = min(arvo, linkit.get(kohde, arvo))
                     break
     return sorted(linkit, key=linkit.get)
+
+
+def etsi_sarjalinkit(html: str, url: str) -> dict[str, str]:
+    """Tulospalvelun sarjat: sarjan nimi -> lohkotilanteiden osoite.
+
+    Valikko on litteä linkkilista, jossa sarjan nimi (esim. "Miehet 60+")
+    edeltää sen alilinkkejä, joten nimi luetaan viimeisimmästä otsikosta.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    sarjat: dict[str, str] = {}
+    nykyinen = None
+    for a in soup.find_all("a", href=True):
+        teksti = a.get_text(strip=True)
+        if a["href"].startswith("javascript") and teksti:
+            nykyinen = teksti
+        elif a["href"].rstrip("/").endswith("/groups") and nykyinen:
+            sarjat.setdefault(nykyinen, urljoin(url, a["href"]))
+    return sarjat
+
+
+def etsi_tulospalvelu(html: str, url: str, syvyys: int = 2) -> dict[str, str]:
+    """Etsii edellisen turnauksen tulospalvelun sarjalinkit.
+
+    Turnaussivulta tulospalveluun voi olla useampi hyppy (esim. Woudit ->
+    "Live Seuranta 2025" -> GameResults), joten linkkejä seurataan syvyyteen
+    asti avainsanojen perusteella.
+    """
+    sarjat = etsi_sarjalinkit(html, url)
+    if sarjat or syvyys <= 0:
+        return sarjat
+    soup = BeautifulSoup(html, "html.parser")
+    for a in soup.find_all("a", href=True):
+        kohde = urljoin(url, a["href"])
+        haettava = (a.get_text() + " " + kohde).lower()
+        if not kohde.startswith("http") or kohde == url:
+            continue
+        if not any(sana in haettava for sana in TULOSLINKKI_SANAT):
+            continue
+        LOKI.info("etsitään tulospalvelua linkistä %s", kohde)
+        try:
+            sarjat = etsi_tulospalvelu(hae_sivu(kohde), kohde, syvyys - 1)
+        except HakuVirhe:
+            continue
+        if sarjat:
+            return sarjat
+    return {}
+
+
+def poimi_ranking_llm(html: str, malli: str | None = None) -> list[dict]:
+    """Poimii sarjan lohkotilanteista joukkueiden lopullisen järjestyksen.
+
+    Palauttaa listan {"sija", "lohko", "nimi"}. Järjestys luetaan sivulta
+    (lohkotaulukot ja sijoitusottelut); sitä ei arvata.
+    """
+    LOKI.info("LLM-kysely: edellisvuoden sarjataulukko (%s)", valitse_malli(malli))
+    raaka = kysy_llm(
+        "Luet turnaussarjan lohkotilanteita ja sijoitusotteluita. Vastaat aina "
+        "pelkkänä rivilistana ilman selityksiä tai koodiaitoja.",
+        "Sivulla on yhden sarjan lohkotaulukot ja mahdolliset sijoitusottelut. "
+        "Muodosta joukkueiden lopullinen paremmuusjärjestys, yksi joukkue "
+        "riviä kohti, muodossa\n"
+        "sija | lohko | nimi\n"
+        "esimerkiksi\n"
+        "1 | A | Wanhat Ketterät 60\n"
+        "- Käytä sijoitusotteluiden tuloksia: ottelun 'sijat 1-2' voittaja on "
+        "sija 1 ja häviäjä sija 2, ja niin edelleen.\n"
+        "- Jos sijoitusotteluita ei ole, käytä lohkotaulukon järjestystä.\n"
+        "- lohko: tasoryhmä, jossa joukkue pelasi (esim. A1, A2, B). Numeroi "
+        "eri tasoryhmät erikseen: A-tason joukkueet ensin sijoiltaan 1..n, "
+        "sitten B-tason joukkueet omalta sijaltaan 1..n.\n"
+        "Älä keksi joukkueita äläkä arvaa sijoja: jos sivulla ei ole "
+        "taulukoita, älä palauta yhtään riviä.",
+        html,
+        malli,
+        max_tokens=2000,
+    )
+    tulos = []
+    for rivi in raaka.splitlines():
+        if "|" not in rivi:
+            continue
+        *alku, nimi = (o.strip() for o in rivi.split("|"))
+        sija, lohko = (alku + ["", ""])[:2]
+        if nimi and sija.isdigit():
+            tulos.append({"sija": int(sija), "lohko": lohko, "nimi": nimi})
+    return tulos
+
+
+def hae_ranking(
+    url: str, sarja: str, malli: str | None = None, html: str | None = None
+) -> tuple[str, list[dict]]:
+    """Hakee edellisen turnauksen paremmuusjärjestyksen annetulle sarjalle.
+
+    Palauttaa (sarjan nimi tulospalvelussa, joukkueet järjestyksessä).
+    """
+    if html is None:
+        html = hae_sivu(url)
+    sarjat = etsi_tulospalvelu(html, url)
+    if not sarjat:
+        return "", []
+    # "60+" osuu tulospalvelun sarjaan "Miehet 60+"
+    nimi = next((n for n in sarjat if sarja and sarja in n), "")
+    if not nimi:
+        LOKI.info("sarjaa %r ei löytynyt tulospalvelusta: %s", sarja, list(sarjat))
+        return "", []
+    try:
+        return nimi, poimi_ranking_llm(hae_sivu(sarjat[nimi]), malli)
+    except (HakuVirhe, anthropic.AnthropicError, RuntimeError) as virhe:
+        LOKI.info("sarjataulukon haku epäonnistui: %s", virhe)
+        return nimi, []
 
 
 def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[dict]:
@@ -637,17 +797,33 @@ def tiivista(
     malli: str | None = None,
     paiva: str | None = None,
     oma_joukkue: str | None = None,
+    hae_sijat: bool = False,
 ) -> str:
     html = hae_sivu(url)
     osat = [muotoile(analysoi_sivu(html, malli))]
     joukkueet = etsi_joukkueet(url, malli, html=html)
+
+    sarja_nimi, ranking = "", []
+    if hae_sijat and joukkueet:
+        oma = next(
+            (j for j in joukkueet if oma_joukkue.lower() in j["nimi"].lower()), None
+        )
+        if oma:
+            sarja_nimi, ranking = hae_ranking(url, oma["sarja"], malli, html=html)
+
     if not joukkueet:
         osat.append(f"Ilmoittautuneet joukkueet: {EI_LOYTYNYT}")
     elif paiva:
-        osat.append(muotoile_harjoitusvastustajat(joukkueet, paiva, oma_joukkue))
+        osat.append(
+            muotoile_harjoitusvastustajat(
+                joukkueet, paiva, oma_joukkue, ranking, sarja_nimi
+            )
+        )
     else:
         osat.append(f"Ilmoittautuneet joukkueet ({len(joukkueet)}):")
         osat.extend(f"  - {muotoile_joukkue(j)}" for j in joukkueet)
+    if hae_sijat:
+        osat.append(muotoile_ranking(sarja_nimi, ranking))
     osat.append(f"LLM-tiivistelmä ({valitse_malli(malli)}):")
     if not os.environ.get("ANTHROPIC_API_KEY"):
         osat.append("  ei käytettävissä (ANTHROPIC_API_KEY puuttuu)")
@@ -680,9 +856,17 @@ def main() -> int:
         metavar="NIMI",
         help="oma joukkue; sen sarja nostetaan --paikalla-listassa ensimmäiseksi",
     )
+    parser.add_argument(
+        "--sijat",
+        action="store_true",
+        help="hae oman sarjan parhausjärjestys edellisestä turnauksesta "
+             "(vaatii --joukkue)",
+    )
     args = parser.parse_args()
-    if args.joukkue and not args.paikalla:
-        parser.error("--joukkue toimii vain yhdessä --paikalla-lipun kanssa")
+    if args.joukkue and not (args.paikalla or args.sijat):
+        parser.error("--joukkue toimii vain --paikalla- tai --sijat-lipun kanssa")
+    if args.sijat and not args.joukkue:
+        parser.error("--sijat tarvitsee --joukkue-lipun tietääkseen sarjan")
     logging.basicConfig(
         stream=sys.stderr, level=logging.INFO,
         format="%(asctime)s %(message)s", datefmt="%H:%M:%S",
@@ -690,7 +874,7 @@ def main() -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     lataa_env()
     try:
-        print(tiivista(args.url, args.model, args.paikalla, args.joukkue))
+        print(tiivista(args.url, args.model, args.paikalla, args.joukkue, args.sijat))
     except HakuVirhe as virhe:
         print(f"Sivun haku epäonnistui: {virhe}", file=sys.stderr)
         return 1

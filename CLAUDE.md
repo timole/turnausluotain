@@ -35,16 +35,25 @@ python3 -m venv .venv
 ```bash
 .venv/bin/python turnausluotain.py <turnauksen-url>
 .venv/bin/python turnausluotain.py --model claude-opus-4-8 <turnauksen-url>
+# harjoitusvastustajat torstaille, oman sarjan sijat edellisestä turnauksesta
+.venv/bin/python turnausluotain.py --paikalla to --joukkue "Hiki-Hockey Seniors" \
+    --sijat <turnauksen-url>
 ```
 
 Mallin etusijajärjestys: `--model` > `TURNAUSLUOTAIN_MODEL` (shell-ympäristö
 voittaa `.env`-tiedoston) > oletus `claude-haiku-4-5`.
 
+Selain (Chromium) asennetaan kerran: `.venv/bin/python -m playwright install chromium`
+(Linuxilla lisäksi `sudo .venv/bin/python -m playwright install-deps chromium`).
+
 ## Arkkitehtuuri (MVP)
 
 Kaikki on yhdessä tiedostossa `turnausluotain.py`:
 
-1. **Haku** – sivu haetaan `requests`illa (selain-User-Agent, timeout).
+1. **Haku** – `hae_sivu(url)` ajaa sivun headless-Chromiumissa (Playwright), joten
+   myös JS-renderöity sisältö (GameResults-tulospalvelu) luetaan. Selain on jaettu
+   ja suljetaan atexitissä; HTTP-status tarkistetaan itse (`goto` ei kaadu
+   virhestatukseen). Virheet nousevat `HakuVirhe`-poikkeuksena.
 2. **Tekstin poiminta** – `BeautifulSoup` riisuu script/style/nav-elementit ja
    tuottaa rivipohjaisen tekstin sivun `<main>`/`<body>`-osasta.
 3. **Perustietojen analyysi** – `analysoi_sivu(html, malli)` poimii laji-,
@@ -63,7 +72,18 @@ Kaikki on yhdessä tiedostossa `turnausluotain.py`:
 5. **Ilmoittautuneet joukkueet** – `etsi_joukkueet(url, malli, html)` seuraa
    tarvittaessa linkkejä alasivuille/ulkoisiin palveluihin ja poimii joukkueet
    LLM:llä (`poimi_joukkueet_llm`); ilman API-avainta varapolkuna heuristiikat.
-6. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
+   Joukkue kulkee sanakirjana `{nimi, sarja, taso, paivat}` ja muotoillaan vasta
+   tulostuksessa (`muotoile_joukkue`); heuristiikkapolku täyttää vain nimen.
+6. **Harjoitusottelut** – `harjoitusvastustajat(joukkueet, paiva)` jakaa joukkueet
+   varmasti paikalla oleviin (pelaa kyseisenä päivänä) ja mahdollisesti paikalla
+   oleviin (pelaa seuraavana, voi saapua edellisiltana). CLI: `--paikalla`,
+   `--joukkue`.
+7. **Parhausjärjestys** – `hae_ranking(url, sarja, ...)` seuraa turnaussivulta
+   linkit edellisen turnauksen tulospalveluun (`etsi_tulospalvelu`, enintään 2
+   hyppyä), hakee oikean sarjan lohkotilanteet ja poimii lopullisen järjestyksen
+   LLM:llä (`poimi_ranking_llm`; sijoitusottelut ratkaisevat A-tason järjestyksen).
+   CLI: `--sijat`.
+8. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
 
 Analyysi on erotettu hausta: `analysoi(html)` palauttaa tiedot sanakirjana ja
 `muotoile(tulos)` tuottaa tekstin, joten analyysiä voi testata ilman verkkoa.
@@ -123,8 +143,13 @@ kysymättä lisää.
   isompi malli näille kentille.
 - Monta turnausta samalla sivulla: Palloliiton sivu on 12 turnauksen sarja,
   mutta tuloste litistää sen yhdeksi; rakenne voisi tukea turnauslistaa.
-- JavaScript-renderöidyt sivut: esim. Playwright-haku varapoluksi, kun
-  palvelimen HTML ei sisällä sisältöä.
+- Sarjojen välinen vertailu: eri ikäluokat eivät pelaa toisiaan vastaan, joten
+  sijoista ei voi johtaa vertailua yli sarjarajojen. Mahdollinen linkki:
+  turnauksen omat harjoitusottelut (2025: Woudit 55 – Hiki-Hockey 5-5), joissa
+  eri ikäluokat kohtaavat.
+- Joukkueiden tunnistus yli vuosien: nimet vaihtelevat ("Hiki-Hockey" /
+  "Hiki-Hockey Seniors (Tampere)") ja eri sarjoissa on samannimisiä joukkueita
+  (Susipapat 50 / 60). Nyt sijat haetaan vain oman sarjan joukkueille.
 
 ## Huomioita
 
