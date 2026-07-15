@@ -1,4 +1,4 @@
-requests>=2.31
+playwright>=1.61
 beautifulsoup4>=4.12
 pytest>=8
 anthropic>=0.116

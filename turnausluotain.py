@@ -5,6 +5,7 @@ Käyttö: python turnausluotain.py <turnauksen-url>
 """
 
 import argparse
+import atexit
 import json
 import logging
 import os
@@ -16,8 +17,14 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import anthropic
-import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import Error as PlaywrightError
+from playwright.sync_api import sync_playwright
+
+
+class HakuVirhe(Exception):
+    """Sivun hakeminen tai renderöinti epäonnistui."""
+
 
 EI_LOYTYNYT = "ei löytynyt sivulta"
 OLETUSMALLI = "claude-haiku-4-5"
@@ -107,19 +114,56 @@ JOUKKUELINKKI_SANAT = ("ilmoittautuneet", "otteluohjelma", "osallistujat", "jouk
 MIN_JOUKKUEITA = 5
 
 
+_SELAIN = {"playwright": None, "selain": None}
+
+
+def hae_selain():
+    """Palauttaa jaetun headless-Chromiumin; käynnistää sen ensimmäisellä kutsulla.
+
+    Selain on jaettu, koska käynnistys maksaa noin sekunnin ja yksi ajo hakee
+    useita sivuja. Suljetaan atexitissä.
+    """
+    if _SELAIN["selain"] is None:
+        alku = time.monotonic()
+        _SELAIN["playwright"] = sync_playwright().start()
+        _SELAIN["selain"] = _SELAIN["playwright"].chromium.launch()
+        atexit.register(sulje_selain)
+        LOKI.info("selain käynnistetty (%.1f s)", time.monotonic() - alku)
+    return _SELAIN["selain"]
+
+
+def sulje_selain() -> None:
+    if _SELAIN["selain"] is not None:
+        _SELAIN["selain"].close()
+        _SELAIN["selain"] = None
+    if _SELAIN["playwright"] is not None:
+        _SELAIN["playwright"].stop()
+        _SELAIN["playwright"] = None
+
+
 def hae_sivu(url: str) -> str:
+    """Hakee sivun ja palauttaa renderöidyn HTML:n.
+
+    Haku tehdään selaimella, jotta myös JavaScriptillä rakennetut sivut
+    (esim. GameResults-tulospalvelu) saadaan luettua.
+    """
     alku = time.monotonic()
-    vastaus = requests.get(
-        url,
-        headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) turnausluotain/0.1"},
-        timeout=30,
-    )
-    vastaus.raise_for_status()
+    sivu = hae_selain().new_page()
+    try:
+        vastaus = sivu.goto(url, wait_until="networkidle", timeout=45000)
+        # goto ei kaadu HTTP-virheeseen, joten status on tarkistettava itse
+        # (muuten esim. 404-sivu analysoitaisiin turnaussivuna).
+        if vastaus is not None and vastaus.status >= 400:
+            raise HakuVirhe(f"{url}: HTTP {vastaus.status}")
+        html = sivu.content()
+    except PlaywrightError as virhe:
+        raise HakuVirhe(f"{url}: {virhe.message.splitlines()[0]}") from virhe
+    finally:
+        sivu.close()
     LOKI.info(
-        "haettu %s (%.1f s, %d kt)",
-        url, time.monotonic() - alku, len(vastaus.text) // 1024,
+        "haettu %s (%.1f s, %d kt)", url, time.monotonic() - alku, len(html) // 1024,
     )
-    return vastaus.text
+    return html
 
 
 def poimi_teksti(html: str) -> tuple[str, list[str]]:
@@ -310,7 +354,7 @@ def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) 
         LOKI.info("joukkueita ei pääsivulla, seurataan linkkiä %s", linkki)
         try:
             joukkueet = poimi_joukkueet_sivulta(hae_sivu(linkki), malli)
-        except requests.RequestException:
+        except HakuVirhe:
             continue
         if joukkueet:
             return joukkueet
@@ -537,7 +581,7 @@ def main() -> int:
     lataa_env()
     try:
         print(tiivista(args.url, args.model))
-    except requests.RequestException as virhe:
+    except HakuVirhe as virhe:
         print(f"Sivun haku epäonnistui: {virhe}", file=sys.stderr)
         return 1
     if KAYTTO["syote"]:

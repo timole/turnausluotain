@@ -15,6 +15,9 @@ jobs:
           python-version: "3.14"
           cache: pip
       - run: pip install -r requirements.txt
+      # Sivut haetaan selaimella, joten CI tarvitsee Chromiumin ja sen
+      # järjestelmäkirjastot.
+      - run: python -m playwright install --with-deps chromium
       # LLM-testit (marker: llm) vaatisivat API-avaimen ja maksaisivat;
       # CI ajaa vain verkosta hakevat heuristiikka- ja yksikkötestit.
       - run: python -m pytest -m "not llm" -v
