@@ -86,7 +86,7 @@ def test_woudit_ilmoittautuneet_joukkueet():
     """
     joukkueet = etsi_joukkueet(WOUDIT_URL)
 
-    assert any("Hiki-Hockey Seniors" in joukkue for joukkue in joukkueet)
+    assert any("Hiki-Hockey Seniors" in j["nimi"] for j in joukkueet)
 
 
 def test_palloliiton_ilmoittautuneet_joukkueet():
@@ -101,7 +101,7 @@ def test_palloliiton_ilmoittautuneet_joukkueet():
     """
     joukkueet = etsi_joukkueet(PALLOLIITTO_URL)
 
-    assert any("Gnistan" in joukkue for joukkue in joukkueet)
+    assert any("Gnistan" in j["nimi"] for j in joukkueet)
 
 
 @pytest.mark.llm
@@ -143,12 +143,36 @@ def test_llm_poimii_ilmoittautuneet_joukkueet_sivulta():
     And Anthropic API -avain on asetettu ympäristöön (ANTHROPIC_API_KEY)
     When manageri pyytää luotaimelta joukkueet LLM-poiminnalla
     Then joukkueista löytyy "Hiki-Hockey Seniors" sarjasta 60+
+    And joukkueen tasoryhmä on A1 ja pelipäivät la-su
     """
     joukkueet = poimi_joukkueet_llm(hae_sivu(WOUDIT_OTTELUOHJELMA_URL))
 
     hiki = [j for j in joukkueet if "Hiki-Hockey Seniors" in j["nimi"]]
     assert hiki, f"Hiki-Hockey Seniors puuttuu: {[j['nimi'] for j in joukkueet]}"
     assert "60" in hiki[0]["sarja"]
+    assert hiki[0]["taso"] == "A1"
+    assert hiki[0]["paivat"] == "la-su"
+
+
+@pytest.mark.llm
+@pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY"),
+    reason="ANTHROPIC_API_KEY puuttuu ympäristöstä",
+)
+def test_llm_poimii_torstaina_paikalla_olevat():
+    """Scenario: torstaina paikalla olevien joukkueiden tunnistaminen
+
+    Given Saimaa-turnauksen otteluohjelma-alasivu, jolla joukkueiden
+      pelipäivät on merkitty (to-pe, pe-la, la-su)
+    When manageri poimii joukkueet LLM-poiminnalla
+    Then torstaina pelaavia (to-pe) joukkueita löytyy useita
+    And niistä löytyy 60+ -sarjan "KoPo 60", joka on paikalla jo torstaina
+    """
+    joukkueet = poimi_joukkueet_llm(hae_sivu(WOUDIT_OTTELUOHJELMA_URL))
+
+    torstaina = [j for j in joukkueet if j["paivat"].startswith("to")]
+    assert len(torstaina) >= 10, f"to-pe-joukkueita vain {len(torstaina)}"
+    assert any("KoPo 60" in j["nimi"] for j in torstaina)
 
 
 @pytest.mark.llm

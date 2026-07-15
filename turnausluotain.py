@@ -263,7 +263,18 @@ def muotoile(tulos: dict) -> str:
     return "\n".join(osat)
 
 
-def poimi_joukkueet(html: str) -> list[str]:
+def joukkue(nimi: str, sarja: str = "", taso: str = "", paivat: str = "") -> dict:
+    """Luo joukkuetietueen. Heuristiikoilla saadaan vain nimi; LLM täyttää muut."""
+    return {"nimi": nimi, "sarja": sarja, "taso": taso, "paivat": paivat}
+
+
+def muotoile_joukkue(j: dict) -> str:
+    """Muotoilee joukkueen riviksi: "Nimi (sarja, taso, päivät)" tiedossa olevin osin."""
+    lisat = [k for k in (j["sarja"], j["taso"], j["paivat"]) if k]
+    return f"{j['nimi']} ({', '.join(lisat)})" if lisat else j["nimi"]
+
+
+def poimi_joukkueet(html: str) -> list[dict]:
     """Poimii sivulta joukkuelistan: ensin tekstiriveistä, sitten tauluista.
 
     Sivu tulkitaan joukkuelistaksi vain, jos osumia on vähintään
@@ -273,7 +284,7 @@ def poimi_joukkueet(html: str) -> list[str]:
     return joukkueet if len(joukkueet) >= MIN_JOUKKUEITA else []
 
 
-def poimi_joukkueet_riveista(html: str) -> list[str]:
+def poimi_joukkueet_riveista(html: str) -> list[dict]:
     """Poimii tekstistä joukkuerivit muodossa "Nimi (Paikkakunta)"."""
     _, rivit = poimi_teksti(html)
     joukkueet = []
@@ -281,11 +292,13 @@ def poimi_joukkueet_riveista(html: str) -> list[str]:
         rivi = re.sub(r"\s+", " ", rivi.replace("\xa0", " ")).strip()
         osuma = JOUKKUE_RIVI.match(rivi)
         if osuma and len(osuma.group(2).split()) <= 2:
-            joukkueet.append(f"{osuma.group(1).strip()} ({osuma.group(2).strip()})")
+            joukkueet.append(
+                joukkue(f"{osuma.group(1).strip()} ({osuma.group(2).strip()})")
+            )
     return joukkueet
 
 
-def poimi_joukkueet_tauluista(html: str) -> list[str]:
+def poimi_joukkueet_tauluista(html: str) -> list[dict]:
     """Poimii joukkueet taulukkoriveistä ilmoittautumissivulta (esim. Taso).
 
     Taulukkosolut voivat olla mitä vain (aikatauluja, tuloksia), joten
@@ -296,12 +309,13 @@ def poimi_joukkueet_tauluista(html: str) -> list[str]:
     otsikko = soup.title.get_text() if soup.title else ""
     if "ilmoittautuneet" not in otsikko.lower():
         return []
-    joukkueet = []
+    joukkueet, nimet = [], set()
     for rivi in soup.find_all("tr"):
         solut = [td.get_text(strip=True) for td in rivi.find_all("td")]
         nimi = next((s for s in reversed(solut) if s), "")
-        if nimi and nimi not in joukkueet:
-            joukkueet.append(nimi)
+        if nimi and nimi not in nimet:
+            nimet.add(nimi)
+            joukkueet.append(joukkue(nimi))
     return joukkueet
 
 
@@ -320,10 +334,9 @@ def etsi_joukkuelinkit(html: str, url: str) -> list[str]:
     return sorted(linkit, key=linkit.get)
 
 
-def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[str]:
+def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[dict]:
     """Poimii yhden sivun joukkueet: LLM:llä jos API-avain on asetettu,
-    muuten heuristiikoilla. LLM:n sanakirjat muotoillaan "Nimi (sarja)"
-    -riveiksi.
+    muuten heuristiikoilla (jolloin vain nimi täyttyy).
     """
     if os.environ.get("ANTHROPIC_API_KEY"):
         try:
@@ -331,14 +344,11 @@ def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[str]:
         except (anthropic.AnthropicError, RuntimeError):
             joukkueet = []
         if joukkueet:
-            return [
-                f"{j['nimi']} ({j['sarja']})" if j.get("sarja") else j["nimi"]
-                for j in joukkueet
-            ]
+            return joukkueet
     return poimi_joukkueet(html)
 
 
-def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) -> list[str]:
+def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) -> list[dict]:
     """Vaihe 2: etsii turnaussivulta ilmoittautuneet joukkueet.
 
     Katsoo ensin itse turnaussivun ja seuraa sitten linkkejä alasivuille
@@ -437,25 +447,28 @@ def jasenna_json(raaka: str):
 
 
 def jasenna_joukkuerivit(raaka: str) -> list[dict]:
-    """Jäsentää rivimuotoisen joukkuelistan ("sarja | nimi") sanakirjoiksi.
+    """Jäsentää rivimuotoisen joukkuelistan ("sarja | taso | päivät | nimi").
 
     Rivit ilman |-erotinta ohitetaan, joten koodiaidat tai selitysteksti
-    ("Sivulla ei ole joukkuelistaa.") eivät päädy joukkueiksi.
+    ("Sivulla ei ole joukkuelistaa.") eivät päädy joukkueiksi. Nimi luetaan
+    viimeisestä kentästä, joten puuttuvat kentät eivät siirrä sitä.
     """
     joukkueet = []
     for rivi in raaka.splitlines():
-        sarja, erotin, nimi = rivi.partition("|")
-        nimi = nimi.strip()
-        if erotin and nimi:
-            joukkueet.append({"nimi": nimi, "sarja": sarja.strip()})
+        if "|" not in rivi:
+            continue
+        *alku, nimi = (o.strip() for o in rivi.split("|"))
+        sarja, taso, paivat = (alku + ["", "", ""])[:3]
+        if nimi:
+            joukkueet.append(joukkue(nimi, sarja, taso, paivat))
     return joukkueet
 
 
 def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
     """Poimii sivulta ilmoittautuneet joukkueet LLM:llä.
 
-    Palauttaa listan sanakirjoja {"nimi": ..., "sarja": ...}; sarja on tyhjä
-    merkkijono, jos se ei näy sivulla. Tyhjä lista, jos sivulla ei ole
+    Palauttaa listan sanakirjoja {"nimi", "sarja", "taso", "paivat"}; kentät
+    ovat tyhjiä, jos ne eivät näy sivulla. Tyhjä lista, jos sivulla ei ole
     joukkuelistaa.
 
     Vastaus pyydetään riveinä eikä JSONina: sama tieto vie noin kolmasosan
@@ -468,11 +481,18 @@ def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
         "numerointia tai koodiaitoja.",
         "Poimi sivulta turnaukseen ilmoittautuneet tai osallistuvat "
         "joukkueet, yksi joukkue riviä kohti, muodossa\n"
-        "sarja | nimi\n"
+        "sarja | taso | päivät | nimi\n"
         "esimerkiksi\n"
-        "60+ | Hiki-Hockey Seniors\n"
-        "Sarja on sarja tai lohko, johon joukkue kuuluu; jätä se tyhjäksi "
-        "(rivi alkaa |-merkillä), jos se ei käy ilmi. Älä keksi joukkueita: "
+        "60+ | A1 | la-su | Hiki-Hockey Seniors\n"
+        "M40 SM | | | IF Gnistan\n"
+        "- sarja: sarja tai ikäluokka, johon joukkue kuuluu (esim. 60+)\n"
+        "- taso: sarjan sisäinen tasoryhmä tai lohko, jos sellainen on "
+        "merkitty joukkueen kohdalle (esim. A1, A2, B, B1)\n"
+        "- päivät: viikonpäivät, joina joukkue pelaa, jos ne on merkitty "
+        "(esim. to-pe, la-su)\n"
+        "- nimi: joukkueen nimi, aina viimeisenä\n"
+        "Jätä kenttä tyhjäksi, jos tieto ei käy ilmi; älä arvaa. Kirjoita "
+        "|-merkit myös tyhjien kenttien ympärille. Älä keksi joukkueita: "
         "jos sivulla ei ole joukkuelistaa, älä palauta yhtään riviä.",
         html,
         malli,
@@ -549,7 +569,7 @@ def tiivista(url: str, malli: str | None = None) -> str:
     joukkueet = etsi_joukkueet(url, malli, html=html)
     if joukkueet:
         osat.append(f"Ilmoittautuneet joukkueet ({len(joukkueet)}):")
-        osat.extend(f"  - {j}" for j in joukkueet)
+        osat.extend(f"  - {muotoile_joukkue(j)}" for j in joukkueet)
     else:
         osat.append(f"Ilmoittautuneet joukkueet: {EI_LOYTYNYT}")
     osat.append(f"LLM-tiivistelmä ({valitse_malli(malli)}):")
