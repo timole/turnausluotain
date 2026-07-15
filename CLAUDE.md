@@ -118,6 +118,15 @@ kysymättä lisää.
   `TURNAUSLUOTAIN_PROVIDER`; Anthropic-mallin vaihto: `--model` /
   `TURNAUSLUOTAIN_MODEL`.) Lykätty 7/2026: kehityskoneen muisti ei riitä
   paikalliseen malliin.
+- Joukkuepoiminnan tehostus: joukkuelistan LLM-kutsu on ajon hitain ja kallein
+  osa; tiiviimpi vastausmuoto (esim. pelkät nimirivit) puolittaisi kulut.
+- LLM-tulosten laadun vakautus: Haiku lipsuu pehmeissä kentissä (ajankohdan
+  tarkenne, paikkakunta vaihtelee ajokerroittain); promptin tarkennus tai
+  isompi malli näille kentille.
+- Monta turnausta samalla sivulla: Palloliiton sivu on 12 turnauksen sarja,
+  mutta tuloste litistää sen yhdeksi; rakenne voisi tukea turnauslistaa.
+- JavaScript-renderöidyt sivut: esim. Playwright-haku varapoluksi, kun
+  palvelimen HTML ei sisällä sisältöä.
 
 ## Huomioita
 

@@ -1,5 +1,7 @@
 # Turnausluotain
 
+[![CI](https://github.com/timole/turnausluotain/actions/workflows/ci.yml/badge.svg)](https://github.com/timole/turnausluotain/actions/workflows/ci.yml)
+
 Komentorivityökalu, joka lukee harrasteturnauksen www-sivun ja tuottaa siitä
 suomenkielisen tiivistelmän: laji, ajankohta, paikkakunta, sarjat,
 ilmoittautumistiedot ja ilmoittautuneet joukkueet.
@@ -108,6 +110,9 @@ verkosta, joten ne vaativat verkkoyhteyden.
 `llm`-markerilla merkityt testit kutsuvat Anthropic-API:a ja ohitetaan
 automaattisesti ilman avainta. Muut testit ajetaan aina ilman avainta,
 joten heuristinen varapolku pysyy testattuna.
+
+GitHub Actions ajaa jokaisella pushilla ja pull requestilla komennon
+`pytest -m "not llm"`, eli CI:ssä ei kuluteta API-kutsuja.
 
 ## Rajoitukset
 
