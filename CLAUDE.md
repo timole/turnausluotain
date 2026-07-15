@@ -76,6 +76,12 @@ Tavoite: luotain etsii turnaussivulta myös ilmoittautuneet joukkueet,
 tarvittaessa seuraamalla linkkejä alasivuille tai ulkoisiin palveluihin
 (esim. Palloliiton Taso-järjestelmä).
 
+Linjaus: joukkueiden poiminta tehdään LLM-pohjaisesti (ei kovakoodattuja
+selektoreita), jotta luotain yleistyy eri turnaussivuille.
+`poimi_joukkueet_llm(html, malli)` palauttaa listan
+`{"nimi": ..., "sarja": ...}` -sanakirjoja. LLM-testit on merkitty
+pytest-markerilla `llm` (aja ilman niitä: `pytest -m "not llm"`).
+
 Hyväksymiskriteerit:
 
 1. `https://www.woudit.fi/etusivu/saimaa-turnaus/` → löytää

@@ -14,10 +14,12 @@ from turnausluotain import (
     etsi_joukkueet,
     hae_sivu,
     muotoile,
+    poimi_joukkueet_llm,
     tiivista_llm,
 )
 
 WOUDIT_URL = "https://www.woudit.fi/etusivu/saimaa-turnaus/"
+WOUDIT_OTTELUOHJELMA_URL = "https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/"
 PALLOLIITTO_URL = (
     "https://www.palloliitto.fi/kilpailut/turnaukset-ja-lopputurnaukset/kki-lopputurnaukset"
 )
@@ -101,6 +103,29 @@ def test_palloliiton_ilmoittautuneet_joukkueet():
     assert any("Gnistan" in joukkue for joukkue in joukkueet)
 
 
+@pytest.mark.llm
+@pytest.mark.skipif(
+    not os.environ.get("ANTHROPIC_API_KEY"),
+    reason="ANTHROPIC_API_KEY puuttuu ympäristöstä",
+)
+def test_llm_poimii_ilmoittautuneet_joukkueet_sivulta():
+    """Scenario: LLM poimii ilmoittautuneet joukkueet turnaussivulta
+
+    Given Saimaa-turnauksen otteluohjelma-alasivu, jolla ilmoittautuneet
+      joukkueet on listattu sarjoittain
+      (https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/)
+    And Anthropic API -avain on asetettu ympäristöön (ANTHROPIC_API_KEY)
+    When manageri pyytää luotaimelta joukkueet LLM-poiminnalla
+    Then joukkueista löytyy "Hiki-Hockey Seniors" sarjasta 60+
+    """
+    joukkueet = poimi_joukkueet_llm(hae_sivu(WOUDIT_OTTELUOHJELMA_URL))
+
+    hiki = [j for j in joukkueet if "Hiki-Hockey Seniors" in j["nimi"]]
+    assert hiki, f"Hiki-Hockey Seniors puuttuu: {[j['nimi'] for j in joukkueet]}"
+    assert "60" in hiki[0]["sarja"]
+
+
+@pytest.mark.llm
 @pytest.mark.skipif(
     not os.environ.get("ANTHROPIC_API_KEY"),
     reason="ANTHROPIC_API_KEY puuttuu ympäristöstä",

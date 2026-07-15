@@ -5,6 +5,7 @@ Käyttö: python turnausluotain.py <turnauksen-url>
 """
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -273,6 +274,46 @@ def etsi_joukkueet(url: str) -> list[str]:
         if joukkueet:
             return joukkueet
     return []
+
+
+def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
+    """Poimii sivulta ilmoittautuneet joukkueet LLM:llä (Anthropicin Claude).
+
+    Palauttaa listan sanakirjoja {"nimi": ..., "sarja": ...}; sarja on tyhjä
+    merkkijono, jos se ei näy sivulla. Tyhjä lista, jos sivulla ei ole
+    joukkuelistaa. Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
+    """
+    otsikko, rivit = poimi_teksti(html)
+    teksti = "\n".join(rivit).replace("\xa0", " ")
+
+    client = anthropic.Anthropic()
+    vastaus = client.messages.create(
+        model=valitse_malli(malli),
+        max_tokens=4000,
+        system=(
+            "Poimit harrasteturnausten www-sivuilta turnaukseen "
+            "ilmoittautuneet joukkueet. Vastaat aina pelkällä JSON-taulukolla "
+            "ilman selityksiä tai koodiaitoja."
+        ),
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    "Poimi sivulta turnaukseen ilmoittautuneet tai osallistuvat "
+                    "joukkueet. Palauta JSON-taulukko, jonka alkiot ovat muotoa "
+                    '{"nimi": "...", "sarja": "..."}. Kirjoita sarja-kenttään '
+                    "sarja tai lohko, johon joukkue kuuluu (esim. \"60+\"), tai "
+                    "tyhjä merkkijono jos se ei käy ilmi. Älä keksi joukkueita: "
+                    "jos sivulla ei ole joukkuelistaa, palauta [].\n\n"
+                    f"Sivun otsikko: {otsikko}\n\n"
+                    f"Sivun sisältö:\n{teksti}"
+                ),
+            }
+        ],
+    )
+    raaka = "".join(b.text for b in vastaus.content if b.type == "text").strip()
+    raaka = re.sub(r"^```\w*\s*|\s*```$", "", raaka)
+    return json.loads(raaka)
 
 
 def tiivista_llm(html: str, malli: str | None = None) -> str:
