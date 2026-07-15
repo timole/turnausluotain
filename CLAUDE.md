@@ -22,7 +22,8 @@ Esimerkkisyöte: https://www.woudit.fi/etusivu/saimaa-turnaus/
   (ks. `requirements.txt`)
 - Konfiguraatio tiedostossa `.env` (ei versionhallinnassa): kopioi pohjaksi
   `.env.example` ja täytä `ANTHROPIC_API_KEY`; valinnainen
-  `TURNAUSLUOTAIN_MODEL` vaihtaa LLM-mallin (oletus `claude-haiku-4-5`)
+  `TURNAUSLUOTAIN_MODEL` vaihtaa LLM-mallin (oletus `claude-haiku-4-5`) ja
+  `TURNAUSLUOTAIN_PROVIDER` LLM-tarjoajan (toistaiseksi vain `anthropic`)
 
 ```bash
 python3 -m venv .venv
@@ -112,9 +113,10 @@ LLM-pohjainen `analysoi_llm` korjaa; regressiotesti varmistaa):
 Kun käyttäjä sanoo "backlogille: X", lisää X tähän listaan yhdellä rivillä
 kysymättä lisää.
 
-- Muiden tarjoajien mallit (esim. paikallinen Gemma Ollamalla): LLM-kutsu
-  abstrahoidaan oman rajapinnan taakse. (Anthropic-mallin vaihto on jo
-  toteutettu: `--model` / `TURNAUSLUOTAIN_MODEL`.)
+- Ollama-tarjoaja (esim. paikallinen Gemma): toteutus `TAYDENTAJAT`-rekisteriin.
+  (Rajapinta on jo abstrahoitu: `valitse_taydentaja` +
+  `TURNAUSLUOTAIN_PROVIDER`; Anthropic-mallin vaihto: `--model` /
+  `TURNAUSLUOTAIN_MODEL`.)
 
 ## Huomioita
 

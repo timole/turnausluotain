@@ -1,7 +1,15 @@
-"""Yksikkötestit LLM-mallin valinnalle. Ei verkkoa eikä API-kutsuja."""
+"""Yksikkötestit LLM-mallin ja -tarjoajan valinnalle. Ei verkkoa eikä API-kutsuja."""
+
+import pytest
 
 import turnausluotain
-from turnausluotain import OLETUSMALLI, valitse_malli
+from turnausluotain import (
+    OLETUSMALLI,
+    kysy_llm,
+    taydenna_anthropic,
+    valitse_malli,
+    valitse_taydentaja,
+)
 
 
 def test_oletusmalli(monkeypatch):
@@ -64,3 +72,53 @@ def test_tiivista_llm_kayttaa_valittua_mallia(monkeypatch):
 
     assert kutsut["model"] == "claude-opus-4-8"
     assert tulos == "Testiturnaus."
+
+
+def test_oletustarjoaja_on_anthropic(monkeypatch):
+    """Scenario: LLM-tarjoajaa ei ole konfiguroitu
+
+    Given TURNAUSLUOTAIN_PROVIDER ei ole asetettu
+    When tarjoaja valitaan
+    Then käytetään Anthropic-toteutusta
+    """
+    monkeypatch.delenv("TURNAUSLUOTAIN_PROVIDER", raising=False)
+    assert valitse_taydentaja() is taydenna_anthropic
+
+
+def test_tuntematon_tarjoaja_antaa_selkean_virheen(monkeypatch):
+    """Scenario: konfiguroitu LLM-tarjoaja on tuntematon
+
+    Given TURNAUSLUOTAIN_PROVIDER=eiole
+    When tarjoaja valitaan
+    Then virheilmoitus nimeää tuntemattoman ja luettelee tuetut tarjoajat
+    """
+    monkeypatch.setenv("TURNAUSLUOTAIN_PROVIDER", "eiole")
+    with pytest.raises(ValueError, match="eiole.*anthropic"):
+        valitse_taydentaja()
+
+
+def test_kysy_llm_kayttaa_valittua_tarjoajaa(monkeypatch):
+    """Scenario: LLM-kutsu ohjautuu konfiguroidulle tarjoajalle
+
+    Given tarjoajaksi on rekisteröity testikaksoisolento "fake"
+    And TURNAUSLUOTAIN_PROVIDER=fake
+    When kysy_llm kutsutaan
+    Then kutsu ohjautuu testikaksoisolennolle sivun sisältö mukanaan
+    """
+    kutsut = {}
+
+    def fake_taydenna(jarjestelma, sisalto, malli, max_tokens):
+        kutsut.update(jarjestelma=jarjestelma, sisalto=sisalto,
+                      malli=malli, max_tokens=max_tokens)
+        return "fake-vastaus"
+
+    monkeypatch.setitem(turnausluotain.TAYDENTAJAT, "fake", fake_taydenna)
+    monkeypatch.setenv("TURNAUSLUOTAIN_PROVIDER", "fake")
+
+    tulos = kysy_llm("järjestelmä", "kysymys",
+                     "<html><body>Turnaussivu</body></html>")
+
+    assert tulos == "fake-vastaus"
+    assert kutsut["jarjestelma"] == "järjestelmä"
+    assert "kysymys" in kutsut["sisalto"]
+    assert "Turnaussivu" in kutsut["sisalto"]

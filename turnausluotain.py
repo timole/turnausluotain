@@ -296,6 +296,38 @@ def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) 
     return []
 
 
+def taydenna_anthropic(
+    jarjestelma: str, sisalto: str, malli: str | None, max_tokens: int
+) -> str:
+    """Anthropic-toteutus LLM-rajapinnalle. Vaatii ANTHROPIC_API_KEY:n."""
+    client = anthropic.Anthropic()
+    vastaus = client.messages.create(
+        model=valitse_malli(malli),
+        max_tokens=max_tokens,
+        system=jarjestelma,
+        messages=[{"role": "user", "content": sisalto}],
+    )
+    if vastaus.stop_reason == "refusal":
+        raise RuntimeError("LLM kieltäytyi vastaamasta")
+    return "".join(b.text for b in vastaus.content if b.type == "text").strip()
+
+
+# LLM-tarjoajat: nimi -> täydennysfunktio(jarjestelma, sisalto, malli, max_tokens).
+# Uusi tarjoaja (esim. paikallinen Gemma Ollamalla) lisätään tähän.
+TAYDENTAJAT = {"anthropic": taydenna_anthropic}
+
+
+def valitse_taydentaja():
+    """Valitsee LLM-tarjoajan TURNAUSLUOTAIN_PROVIDER-muuttujalla (oletus anthropic)."""
+    nimi = os.environ.get("TURNAUSLUOTAIN_PROVIDER", "anthropic")
+    try:
+        return TAYDENTAJAT[nimi]
+    except KeyError:
+        raise ValueError(
+            f"Tuntematon LLM-tarjoaja {nimi!r}; tuetut: {', '.join(sorted(TAYDENTAJAT))}"
+        ) from None
+
+
 def kysy_llm(
     jarjestelma: str,
     kysymys: str,
@@ -303,32 +335,15 @@ def kysy_llm(
     malli: str | None = None,
     max_tokens: int = 1000,
 ) -> str:
-    """Kysyy LLM:ltä (Anthropicin Claude) kysymyksen sivun sisällöstä.
-
-    Vaatii ANTHROPIC_API_KEY-ympäristömuuttujan.
-    """
+    """Kysyy konfiguroidulta LLM-tarjoajalta kysymyksen sivun sisällöstä."""
     otsikko, rivit = poimi_teksti(html)
     teksti = "\n".join(rivit).replace("\xa0", " ")
-
-    client = anthropic.Anthropic()
-    vastaus = client.messages.create(
-        model=valitse_malli(malli),
-        max_tokens=max_tokens,
-        system=jarjestelma,
-        messages=[
-            {
-                "role": "user",
-                "content": (
-                    f"{kysymys}\n\n"
-                    f"Sivun otsikko: {otsikko}\n\n"
-                    f"Sivun sisältö:\n{teksti}"
-                ),
-            }
-        ],
+    sisalto = (
+        f"{kysymys}\n\n"
+        f"Sivun otsikko: {otsikko}\n\n"
+        f"Sivun sisältö:\n{teksti}"
     )
-    if vastaus.stop_reason == "refusal":
-        raise RuntimeError("LLM kieltäytyi vastaamasta")
-    return "".join(b.text for b in vastaus.content if b.type == "text").strip()
+    return valitse_taydentaja()(jarjestelma, sisalto, malli, max_tokens)
 
 
 def jasenna_json(raaka: str):
