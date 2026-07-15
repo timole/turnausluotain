@@ -74,7 +74,11 @@ docstringeissä Given/When/Then-muodossa) hakevat oikeat sivut verkosta:
 
 ```bash
 .venv/bin/python -m pytest -v
+.venv/bin/python -m pytest -m "not llm"   # ilman API-kutsuja (heuristiikkapolku)
 ```
+
+Conftest poistaa API-avaimen testeiltä, joita ei ole merkitty
+`llm`-markerilla, joten ne testaavat aina heuristista varapolkua.
 
 ## Vaihe 2: Ilmoittautuneet joukkueet
 
