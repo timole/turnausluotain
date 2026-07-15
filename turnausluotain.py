@@ -319,6 +319,75 @@ def poimi_joukkueet_tauluista(html: str) -> list[dict]:
     return joukkueet
 
 
+VIIKONPAIVAT = ["ma", "ti", "ke", "to", "pe", "la", "su"]
+
+
+def pelipaivat(j: dict) -> list[str]:
+    """Joukkueen pelipäivät listana; "to-pe" tarkoittaa sekä torstaita että
+    perjantaita ja kaikkea siltä väliltä.
+    """
+    paat = [p for p in re.split(r"[^a-zä]+", j["paivat"].lower()) if p in VIIKONPAIVAT]
+    if not paat:
+        return []
+    alku, loppu = VIIKONPAIVAT.index(paat[0]), VIIKONPAIVAT.index(paat[-1])
+    return VIIKONPAIVAT[alku:loppu + 1]
+
+
+def harjoitusvastustajat(joukkueet: list[dict], paiva: str) -> tuple[list, list]:
+    """Jakaa joukkueet harjoitusottelun kannalta kahteen ryhmään.
+
+    Palauttaa (varmat, mahdolliset): varmat pelaavat kyseisenä päivänä,
+    mahdolliset vasta seuraavana – he saattavat silti saapua paikalle jo
+    edellisiltana, mikä riittää iltaotteluun.
+    """
+    seuraava = VIIKONPAIVAT[VIIKONPAIVAT.index(paiva) + 1:][:1]
+    varmat = [j for j in joukkueet if paiva in pelipaivat(j)]
+    mahdolliset = [
+        j for j in joukkueet
+        if j not in varmat and seuraava and seuraava[0] in pelipaivat(j)
+    ]
+    return varmat, mahdolliset
+
+
+def muotoile_harjoitusvastustajat(
+    joukkueet: list[dict], paiva: str, oma_nimi: str | None
+) -> str:
+    """Muotoilee harjoitusvastustajaehdokkaat; oma sarja ensin, jos oma
+    joukkue on annettu.
+    """
+    oma = next(
+        (j for j in joukkueet if oma_nimi and oma_nimi.lower() in j["nimi"].lower()),
+        None,
+    )
+    osat = [f"HARJOITUSVASTUSTAJAT (paikalla {paiva})"]
+    if oma_nimi:
+        osat.append(
+            f"Oma joukkue: {muotoile_joukkue(oma)}" if oma
+            else f"Oma joukkue: {oma_nimi} – {EI_LOYTYNYT}"
+        )
+    varmat, mahdolliset = harjoitusvastustajat(joukkueet, paiva)
+    for otsikko, ryhma in (
+        (f"Varmasti paikalla (pelaa {paiva})", varmat),
+        (f"Mahdollisesti paikalla (pelaa vasta seuraavana päivänä)", mahdolliset),
+    ):
+        osat.append(f"\n{otsikko}: {len(ryhma)}")
+        if not ryhma:
+            osat.append("  (ei ehdokkaita)")
+            continue
+        # oma sarja ensin: sen tasoja voi verrata suoraan omaan joukkueeseen
+        for j in sorted(
+            ryhma,
+            key=lambda j: (not (oma and j["sarja"] == oma["sarja"]), j["sarja"], j["taso"]),
+        ):
+            if j is oma:
+                continue
+            merkki = "*" if oma and j["sarja"] == oma["sarja"] else " "
+            osat.append(f"  {merkki} {muotoile_joukkue(j)}")
+    if oma:
+        osat.append("\n* = sama sarja kuin omalla joukkueella (tasot vertailukelpoisia)")
+    return "\n".join(osat)
+
+
 def etsi_joukkuelinkit(html: str, url: str) -> list[str]:
     """Etsii sivulta linkit, jotka todennäköisesti vievät joukkuelistaan."""
     soup = BeautifulSoup(html, "html.parser")
@@ -563,15 +632,22 @@ def analysoi_sivu(html: str, malli: str | None = None) -> dict:
     return analysoi(html)
 
 
-def tiivista(url: str, malli: str | None = None) -> str:
+def tiivista(
+    url: str,
+    malli: str | None = None,
+    paiva: str | None = None,
+    oma_joukkue: str | None = None,
+) -> str:
     html = hae_sivu(url)
     osat = [muotoile(analysoi_sivu(html, malli))]
     joukkueet = etsi_joukkueet(url, malli, html=html)
-    if joukkueet:
+    if not joukkueet:
+        osat.append(f"Ilmoittautuneet joukkueet: {EI_LOYTYNYT}")
+    elif paiva:
+        osat.append(muotoile_harjoitusvastustajat(joukkueet, paiva, oma_joukkue))
+    else:
         osat.append(f"Ilmoittautuneet joukkueet ({len(joukkueet)}):")
         osat.extend(f"  - {muotoile_joukkue(j)}" for j in joukkueet)
-    else:
-        osat.append(f"Ilmoittautuneet joukkueet: {EI_LOYTYNYT}")
     osat.append(f"LLM-tiivistelmä ({valitse_malli(malli)}):")
     if not os.environ.get("ANTHROPIC_API_KEY"):
         osat.append("  ei käytettävissä (ANTHROPIC_API_KEY puuttuu)")
@@ -592,7 +668,21 @@ def main() -> int:
         "--model",
         help=f"LLM-malli (oletus TURNAUSLUOTAIN_MODEL tai {OLETUSMALLI})",
     )
+    parser.add_argument(
+        "--paikalla",
+        metavar="PÄIVÄ",
+        choices=VIIKONPAIVAT,
+        help="listaa joukkueluettelon sijaan harjoitusvastustajaehdokkaat, "
+             "jotka ovat paikalla annettuna päivänä (esim. to)",
+    )
+    parser.add_argument(
+        "--joukkue",
+        metavar="NIMI",
+        help="oma joukkue; sen sarja nostetaan --paikalla-listassa ensimmäiseksi",
+    )
     args = parser.parse_args()
+    if args.joukkue and not args.paikalla:
+        parser.error("--joukkue toimii vain yhdessä --paikalla-lipun kanssa")
     logging.basicConfig(
         stream=sys.stderr, level=logging.INFO,
         format="%(asctime)s %(message)s", datefmt="%H:%M:%S",
@@ -600,7 +690,7 @@ def main() -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     lataa_env()
     try:
-        print(tiivista(args.url, args.model))
+        print(tiivista(args.url, args.model, args.paikalla, args.joukkue))
     except HakuVirhe as virhe:
         print(f"Sivun haku epäonnistui: {virhe}", file=sys.stderr)
         return 1
