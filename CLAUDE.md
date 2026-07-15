@@ -116,7 +116,8 @@ kysymättä lisää.
 - Ollama-tarjoaja (esim. paikallinen Gemma): toteutus `TAYDENTAJAT`-rekisteriin.
   (Rajapinta on jo abstrahoitu: `valitse_taydentaja` +
   `TURNAUSLUOTAIN_PROVIDER`; Anthropic-mallin vaihto: `--model` /
-  `TURNAUSLUOTAIN_MODEL`.)
+  `TURNAUSLUOTAIN_MODEL`.) Lykätty 7/2026: kehityskoneen muisti ei riitä
+  paikalliseen malliin.
 
 ## Huomioita
 

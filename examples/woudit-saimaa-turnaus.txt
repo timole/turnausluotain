@@ -1,0 +1,108 @@
+$ python turnausluotain.py https://www.woudit.fi/etusivu/saimaa-turnaus/
+
+TURNAUS: Linnan Woudit - Saimaa turnaus 2026
+Laji:        jääkiekko
+Ajankohta:   30.7 – 2.8.2026
+Paikkakunta: Savonlinna, Rantasalmi, Tanhuvaara
+Sarjat:
+  - 35+
+  - 40+
+  - 45+
+  - 50+
+  - 55+
+  - 60+
+  - 65+
+  - 70+
+  - Naiset avoin sarja
+Ilmoittautuminen:
+  Turnauspäällikkö Harri Eliala
+  woudit@gmail.com
+  +358 40 9100230
+  Turnausmaksu 680 euroa, lasku lähetetään joukkueen yhteyshenkilön sähköpostiin
+Ilmoittautuneet joukkueet (70):
+  - SaPKo (Naisten avoin)
+  - SeRoPi (Naisten avoin)
+  - Jiäkisut (Naisten avoin)
+  - Parasta Ennen (Naisten avoin)
+  - Saipa Ladyt (Naisten avoin)
+  - Talvisalo Traitors Black (35+)
+  - KoPo 35 (35+)
+  - Turistit (35+)
+  - Sapko Pässit ja Pukit (35+)
+  - HeSu HC (35+)
+  - Musikat 35 (35+)
+  - Linnan Woudit 40 (40+)
+  - SaPKo -81 (40+)
+  - Talvisalo Traitors White (40+)
+  - Pulicans (40+)
+  - Inno-Team (40+)
+  - KoPo 45 (45+)
+  - Hakkapeliitat N ia (45+)
+  - Red Foxes (45+)
+  - MacGyverit (45+)
+  - Lapasorsat (45+)
+  - Musikat 50 (50+)
+  - Porin Pappasalamat 50 (50+)
+  - Kilpurit (50+)
+  - HC Legion (50+)
+  - Huru-Ukot (50+)
+  - Viuho -77 (50+)
+  - Vimpelin Veto (50+)
+  - Hock`n Holl (50+)
+  - Pelimiehet (50+)
+  - Susipapat 50 (50+)
+  - Mansen Ketut 55 (55+)
+  - Linnan Woudit 55 (55+)
+  - Nitro-Kärpät (55+)
+  - Pussikaulat (55+)
+  - SaPKo-emigrants 55 (55+)
+  - Rangers 94 (55+)
+  - Pelivaarit (60+)
+  - Mansen Ketut 60 (60+)
+  - Porin Pappasalamat 60 (60+)
+  - Superstars (60+)
+  - Wanhat Ketterät 60 (60+)
+  - Reds (60+)
+  - Susipapat 60 (60+)
+  - Hiki-Hockey Seniors (60+)
+  - KoPo 60 (60+)
+  - Hamarin Elohurtat (60+)
+  - Wanhat Ketut (60+)
+  - Höntsä Team (60+)
+  - JPK Oldboys (60+)
+  - Mansen Ketut 65 (65+)
+  - Linnan Woudit 65 (65+)
+  - SUPRA (65+)
+  - SaPKo-emigrants 65 (65+)
+  - Mutalan Riplaajat (65+)
+  - Kiekko-Weskut 65 (65+)
+  - Laakasijat (65+)
+  - RETRO (65+)
+  - Linnan Waarit (65+)
+  - Told Boys (65+)
+  - Iki-Haukat (65+)
+  - FIN Extremes (70+)
+  - Wanhat Ketterät 70 (70+)
+  - Starikat (70+)
+  - Red & White 70 (70+)
+  - Mansen Ketut 70 (70+)
+  - Hockey Club 65 (70+)
+  - Stadin Starat (70+)
+  - Kiekko-Weskut 70 (70+)
+  - XO Players (70+)
+LLM-tiivistelmä (claude-haiku-4-5):
+  Kyseessä on veteraanijääkiekkoturnaus, jonka 46. edisiä järjestetään 30.7.–2.8.2026 Savonlinnan, Tanhuvaalan ja Rantasalmen jäähalleissa. Turnaus on suunnattu eri ikäryhmien veteraanipelaajille (35+–70+) sekä naisille, ja se on Euroopan suurin veteraanijääkiekkoturnaus.
+
+--- Ajoloki (stderr) ---
+09:14:12 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/ (1.2 s, 43 kt)
+09:14:12 LLM-kysely: perustiedot (claude-haiku-4-5)
+09:14:15   vastaus 3.1 s, 1642 + 236 tokenia, 0.0028 $
+09:14:15 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+09:14:17   vastaus 1.1 s, 1520 + 9 tokenia, 0.0016 $
+09:14:17 joukkueita ei pääsivulla, seurataan linkkiä https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/
+09:14:18 haettu https://www.woudit.fi/etusivu/saimaa-turnaus/otteluohjelma/ (1.3 s, 40 kt)
+09:14:18 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+09:14:27   vastaus 8.9 s, 1727 + 1581 tokenia, 0.0096 $
+09:14:27 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
+09:14:30   vastaus 2.6 s, 1421 + 127 tokenia, 0.0021 $
+09:14:30 LLM-käyttö yhteensä: 6310 syöte- ja 1953 tulostetokenia, ~0.0161 $
