@@ -86,7 +86,8 @@ MAKSU = re.compile(r"[^.]*maksu[^.]*?\d[\d\s.,]*\s*(?:€|euroa|eur)[^.]*\.?", r
 # Joukkuerivi: "Nimi (Paikkakunta) ..."; sulkujen sisältö enintään kaksi sanaa
 # eikä numeroita, jottei ikäraja- tai hallirivejä lueta joukkueiksi.
 JOUKKUE_RIVI = re.compile(r"^([^()]{3,50}?)\s*\(([^()\d]{2,30})\)")
-JOUKKUELINKKI_SANAT = ("otteluohjelma", "joukkueet", "ilmoittautuneet", "osallistujat")
+# tärkeysjärjestyksessä: varmin vihje ensin
+JOUKKUELINKKI_SANAT = ("ilmoittautuneet", "otteluohjelma", "osallistujat", "joukkueet")
 MIN_JOUKKUEITA = 5
 
 
@@ -198,11 +199,17 @@ def muotoile(tulos: dict) -> str:
 
 
 def poimi_joukkueet(html: str) -> list[str]:
-    """Poimii sivun tekstistä joukkuerivit muodossa "Nimi (Paikkakunta)".
+    """Poimii sivulta joukkuelistan: ensin tekstiriveistä, sitten tauluista.
 
     Sivu tulkitaan joukkuelistaksi vain, jos osumia on vähintään
-    MIN_JOUKKUEITA – yksittäiset sulkurivit ovat yleensä muuta sisältöä.
+    MIN_JOUKKUEITA – yksittäiset osumat ovat yleensä muuta sisältöä.
     """
+    joukkueet = poimi_joukkueet_riveista(html) or poimi_joukkueet_tauluista(html)
+    return joukkueet if len(joukkueet) >= MIN_JOUKKUEITA else []
+
+
+def poimi_joukkueet_riveista(html: str) -> list[str]:
+    """Poimii tekstistä joukkuerivit muodossa "Nimi (Paikkakunta)"."""
     _, rivit = poimi_teksti(html)
     joukkueet = []
     for rivi in rivit:
@@ -210,20 +217,42 @@ def poimi_joukkueet(html: str) -> list[str]:
         osuma = JOUKKUE_RIVI.match(rivi)
         if osuma and len(osuma.group(2).split()) <= 2:
             joukkueet.append(f"{osuma.group(1).strip()} ({osuma.group(2).strip()})")
-    return joukkueet if len(joukkueet) >= MIN_JOUKKUEITA else []
+    return joukkueet
+
+
+def poimi_joukkueet_tauluista(html: str) -> list[str]:
+    """Poimii joukkueet taulukkoriveistä ilmoittautumissivulta (esim. Taso).
+
+    Taulukkosolut voivat olla mitä vain (aikatauluja, tuloksia), joten
+    poiminta tehdään vain sivulta, joka otsikoi itsensä ilmoittautuneiden
+    listaksi.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    otsikko = soup.title.get_text() if soup.title else ""
+    if "ilmoittautuneet" not in otsikko.lower():
+        return []
+    joukkueet = []
+    for rivi in soup.find_all("tr"):
+        solut = [td.get_text(strip=True) for td in rivi.find_all("td")]
+        nimi = next((s for s in reversed(solut) if s), "")
+        if nimi and nimi not in joukkueet:
+            joukkueet.append(nimi)
+    return joukkueet
 
 
 def etsi_joukkuelinkit(html: str, url: str) -> list[str]:
     """Etsii sivulta linkit, jotka todennäköisesti vievät joukkuelistaan."""
     soup = BeautifulSoup(html, "html.parser")
-    linkit = []
+    linkit: dict[str, int] = {}
     for a in soup.find_all("a", href=True):
         kohde = urljoin(url, a["href"])
         haettava = (a.get_text() + " " + kohde).lower()
-        if kohde.startswith("http") and any(s in haettava for s in JOUKKUELINKKI_SANAT):
-            if kohde not in linkit and kohde != url:
-                linkit.append(kohde)
-    return linkit
+        if kohde.startswith("http") and kohde != url:
+            for arvo, sana in enumerate(JOUKKUELINKKI_SANAT):
+                if sana in haettava:
+                    linkit[kohde] = min(arvo, linkit.get(kohde, arvo))
+                    break
+    return sorted(linkit, key=linkit.get)
 
 
 def etsi_joukkueet(url: str) -> list[str]:
