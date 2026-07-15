@@ -274,13 +274,15 @@ def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[str]:
     return poimi_joukkueet(html)
 
 
-def etsi_joukkueet(url: str, malli: str | None = None) -> list[str]:
+def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) -> list[str]:
     """Vaihe 2: etsii turnaussivulta ilmoittautuneet joukkueet.
 
     Katsoo ensin itse turnaussivun ja seuraa sitten linkkejä alasivuille
-    tai ulkoisiin palveluihin, kunnes joukkuelista löytyy.
+    tai ulkoisiin palveluihin, kunnes joukkuelista löytyy. Valmiiksi haetun
+    turnaussivun voi antaa html-parametrina.
     """
-    html = hae_sivu(url)
+    if html is None:
+        html = hae_sivu(url)
     joukkueet = poimi_joukkueet_sivulta(html, malli)
     if joukkueet:
         return joukkueet
@@ -369,7 +371,14 @@ def tiivista_llm(html: str, malli: str | None = None) -> str:
 
 def tiivista(url: str, malli: str | None = None) -> str:
     html = hae_sivu(url)
-    osat = [muotoile(analysoi(html)), f"LLM-tiivistelmä ({valitse_malli(malli)}):"]
+    osat = [muotoile(analysoi(html))]
+    joukkueet = etsi_joukkueet(url, malli, html=html)
+    if joukkueet:
+        osat.append(f"Ilmoittautuneet joukkueet ({len(joukkueet)}):")
+        osat.extend(f"  - {j}" for j in joukkueet)
+    else:
+        osat.append(f"Ilmoittautuneet joukkueet: {EI_LOYTYNYT}")
+    osat.append(f"LLM-tiivistelmä ({valitse_malli(malli)}):")
     if not os.environ.get("ANTHROPIC_API_KEY"):
         osat.append("  ei käytettävissä (ANTHROPIC_API_KEY puuttuu)")
     else:

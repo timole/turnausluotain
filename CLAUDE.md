@@ -56,7 +56,10 @@ Kaikki on yhdessä tiedostossa `turnausluotain.py`:
    mallilta (ks. Ajaminen; oletus `claude-haiku-4-5`) parin lauseen
    suomenkielisen tiivistelmän sivusta. Vaatii `ANTHROPIC_API_KEY`:n (luetaan
    `.env`-tiedostosta); ilman avainta CLI toimii pelkillä heuristiikoilla.
-5. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
+5. **Ilmoittautuneet joukkueet** – `etsi_joukkueet(url, malli, html)` seuraa
+   tarvittaessa linkkejä alasivuille/ulkoisiin palveluihin ja poimii joukkueet
+   LLM:llä (`poimi_joukkueet_llm`); ilman API-avainta varapolkuna heuristiikat.
+6. **Tulostus** – suomenkielinen tiivistelmä stdoutiin.
 
 Analyysi on erotettu hausta: `analysoi(html)` palauttaa tiedot sanakirjana ja
 `muotoile(tulos)` tuottaa tekstin, joten analyysiä voi testata ilman verkkoa.
