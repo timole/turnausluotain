@@ -10,6 +10,8 @@ import re
 import sys
 from pathlib import Path
 
+from urllib.parse import urljoin
+
 import anthropic
 import requests
 from bs4 import BeautifulSoup
@@ -80,6 +82,12 @@ PVM = re.compile(r"\b\d{1,2}\.\d{1,2}\.\d{4}\b")
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 PUHELIN = re.compile(r"(?:\+358|0)\s?\d{1,3}(?:[\s-]?\d{2,4}){2,3}")
 MAKSU = re.compile(r"[^.]*maksu[^.]*?\d[\d\s.,]*\s*(?:€|euroa|eur)[^.]*\.?", re.IGNORECASE)
+
+# Joukkuerivi: "Nimi (Paikkakunta) ..."; sulkujen sisältö enintään kaksi sanaa
+# eikä numeroita, jottei ikäraja- tai hallirivejä lueta joukkueiksi.
+JOUKKUE_RIVI = re.compile(r"^([^()]{3,50}?)\s*\(([^()\d]{2,30})\)")
+JOUKKUELINKKI_SANAT = ("otteluohjelma", "joukkueet", "ilmoittautuneet", "osallistujat")
+MIN_JOUKKUEITA = 5
 
 
 def hae_sivu(url: str) -> str:
@@ -189,12 +197,52 @@ def muotoile(tulos: dict) -> str:
     return "\n".join(osat)
 
 
+def poimi_joukkueet(html: str) -> list[str]:
+    """Poimii sivun tekstistä joukkuerivit muodossa "Nimi (Paikkakunta)".
+
+    Sivu tulkitaan joukkuelistaksi vain, jos osumia on vähintään
+    MIN_JOUKKUEITA – yksittäiset sulkurivit ovat yleensä muuta sisältöä.
+    """
+    _, rivit = poimi_teksti(html)
+    joukkueet = []
+    for rivi in rivit:
+        rivi = re.sub(r"\s+", " ", rivi.replace("\xa0", " ")).strip()
+        osuma = JOUKKUE_RIVI.match(rivi)
+        if osuma and len(osuma.group(2).split()) <= 2:
+            joukkueet.append(f"{osuma.group(1).strip()} ({osuma.group(2).strip()})")
+    return joukkueet if len(joukkueet) >= MIN_JOUKKUEITA else []
+
+
+def etsi_joukkuelinkit(html: str, url: str) -> list[str]:
+    """Etsii sivulta linkit, jotka todennäköisesti vievät joukkuelistaan."""
+    soup = BeautifulSoup(html, "html.parser")
+    linkit = []
+    for a in soup.find_all("a", href=True):
+        kohde = urljoin(url, a["href"])
+        haettava = (a.get_text() + " " + kohde).lower()
+        if kohde.startswith("http") and any(s in haettava for s in JOUKKUELINKKI_SANAT):
+            if kohde not in linkit and kohde != url:
+                linkit.append(kohde)
+    return linkit
+
+
 def etsi_joukkueet(url: str) -> list[str]:
     """Vaihe 2: etsii turnaussivulta ilmoittautuneet joukkueet.
 
-    Seuraa tarvittaessa linkkejä alasivuille tai ulkoisiin palveluihin.
-    Toteutus puuttuu vielä; ks. CLAUDE.md, Vaihe 2.
+    Katsoo ensin itse turnaussivun ja seuraa sitten linkkejä alasivuille
+    tai ulkoisiin palveluihin, kunnes joukkuelista löytyy.
     """
+    html = hae_sivu(url)
+    joukkueet = poimi_joukkueet(html)
+    if joukkueet:
+        return joukkueet
+    for linkki in etsi_joukkuelinkit(html, url):
+        try:
+            joukkueet = poimi_joukkueet(hae_sivu(linkki))
+        except requests.RequestException:
+            continue
+        if joukkueet:
+            return joukkueet
     return []
 
 
