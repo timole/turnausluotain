@@ -46,7 +46,10 @@ Kaikki on yhdessä tiedostossa `turnausluotain.py`:
 1. **Haku** – sivu haetaan `requests`illa (selain-User-Agent, timeout).
 2. **Tekstin poiminta** – `BeautifulSoup` riisuu script/style/nav-elementit ja
    tuottaa rivipohjaisen tekstin sivun `<main>`/`<body>`-osasta.
-3. **Heuristinen analyysi** – tekstistä poimitaan:
+3. **Perustietojen analyysi** – `analysoi_sivu(html, malli)` poimii laji-,
+   ajankohta-, paikkakunta-, sarja- ja ilmoittautumistiedot LLM:llä
+   (`analysoi_llm`, JSON-olio); ilman API-avainta tai LLM:n epäonnistuessa
+   varapolkuna heuristinen `analysoi(html)`, joka poimii:
    - laji avainsanalistalla (jääkiekko, salibandy, jalkapallo, ...)
    - ajankohta päivämäärä-regexeillä (esim. `30.7 – 02.08.2026`)
    - paikkakunta vertaamalla tekstiä suomalaisten kaupunkien listaan
@@ -93,7 +96,8 @@ Hyväksymiskriteerit:
    → löytää joukkueen "Gnistan" ilmoittautumissivulta
    `https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26`.
 
-Testihavainnot Palloliitto-sivulta (korjattavaa nykyisissä heuristiikoissa):
+Testihavainnot Palloliitto-sivulta (heuristiikkojen puutteet, jotka
+LLM-pohjainen `analysoi_llm` korjaa; regressiotesti varmistaa):
 
 - Ajankohta-regex poimi ikärajapäivämäärän (31.12.1996) turnauspäivän sijaan.
 - Sarjat (M35–M75) jäivät löytymättä.
@@ -110,9 +114,9 @@ kysymättä lisää.
 
 ## Huomioita
 
-- Rakenteiset kentät (laji, ajankohta, sarjat, ...) poimitaan heuristiikoilla;
-  LLM tuottaa vain vapaamuotoisen tiivistelmän. Jatkossa heuristiikatkin voi
-  korvata LLM-kutsulla, jolloin vapaamuotoisemmat sivut jäsentyvät paremmin.
+- Rakenteiset kentät (laji, ajankohta, sarjat, ...) ja joukkueet poimitaan
+  ensisijaisesti LLM:llä; heuristiikat ovat varapolku, jolla CLI toimii myös
+  ilman API-avainta.
 - Heuristiikat on viritetty tyypillisiä suomalaisia turnaussivuja vasten;
   puuttuva tieto raportoidaan arvolla "ei löytynyt sivulta", ei kaadeta ajoa.
 - JavaScript-renderöityjä sivuja MVP ei tue (vain palvelimen palauttama HTML).

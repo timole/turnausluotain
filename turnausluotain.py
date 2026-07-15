@@ -408,9 +408,21 @@ def tiivista_llm(html: str, malli: str | None = None) -> str:
     )
 
 
+def analysoi_sivu(html: str, malli: str | None = None) -> dict:
+    """Analysoi sivun perustiedot: LLM:llä jos API-avain on asetettu,
+    muuten heuristiikoilla. LLM:n epäonnistuessa pudotaan heuristiikkoihin.
+    """
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        try:
+            return analysoi_llm(html, malli)
+        except (anthropic.AnthropicError, json.JSONDecodeError, RuntimeError):
+            pass
+    return analysoi(html)
+
+
 def tiivista(url: str, malli: str | None = None) -> str:
     html = hae_sivu(url)
-    osat = [muotoile(analysoi(html))]
+    osat = [muotoile(analysoi_sivu(html, malli))]
     joukkueet = etsi_joukkueet(url, malli, html=html)
     if joukkueet:
         osat.append(f"Ilmoittautuneet joukkueet ({len(joukkueet)}):")
