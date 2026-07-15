@@ -6,9 +6,11 @@ Käyttö: python turnausluotain.py <turnauksen-url>
 
 import argparse
 import json
+import logging
 import os
 import re
 import sys
+import time
 from pathlib import Path
 
 from urllib.parse import urljoin
@@ -19,6 +21,19 @@ from bs4 import BeautifulSoup
 
 EI_LOYTYNYT = "ei löytynyt sivulta"
 OLETUSMALLI = "claude-haiku-4-5"
+
+LOKI = logging.getLogger("turnausluotain")
+
+# Listahinnat $/miljoona tokenia (syöte, tuloste), platform.claude.com 2026-07.
+# Huom: Sonnet 5:llä on tutustumishinta 2/10 $ 31.8.2026 asti; tässä listahinta.
+HINNAT = {
+    "claude-haiku-4-5": (1.00, 5.00),
+    "claude-sonnet-5": (3.00, 15.00),
+    "claude-opus-4-8": (5.00, 25.00),
+}
+
+# LLM-käytön kertymä tämän ajon ajalta (kysy_llm päivittää)
+KAYTTO = {"syote": 0, "tuloste": 0, "usd": 0.0}
 
 
 def valitse_malli(cli_malli: str | None = None) -> str:
@@ -93,12 +108,17 @@ MIN_JOUKKUEITA = 5
 
 
 def hae_sivu(url: str) -> str:
+    alku = time.monotonic()
     vastaus = requests.get(
         url,
         headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) turnausluotain/0.1"},
         timeout=30,
     )
     vastaus.raise_for_status()
+    LOKI.info(
+        "haettu %s (%.1f s, %d kt)",
+        url, time.monotonic() - alku, len(vastaus.text) // 1024,
+    )
     return vastaus.text
 
 
@@ -287,6 +307,7 @@ def etsi_joukkueet(url: str, malli: str | None = None, html: str | None = None) 
     if joukkueet:
         return joukkueet
     for linkki in etsi_joukkuelinkit(html, url):
+        LOKI.info("joukkueita ei pääsivulla, seurataan linkkiä %s", linkki)
         try:
             joukkueet = poimi_joukkueet_sivulta(hae_sivu(linkki), malli)
         except requests.RequestException:
@@ -301,15 +322,35 @@ def taydenna_anthropic(
 ) -> str:
     """Anthropic-toteutus LLM-rajapinnalle. Vaatii ANTHROPIC_API_KEY:n."""
     client = anthropic.Anthropic()
+    alku = time.monotonic()
     vastaus = client.messages.create(
         model=valitse_malli(malli),
         max_tokens=max_tokens,
         system=jarjestelma,
         messages=[{"role": "user", "content": sisalto}],
     )
+    kirjaa_kaytto(valitse_malli(malli), time.monotonic() - alku,
+                  getattr(vastaus, "usage", None))
     if vastaus.stop_reason == "refusal":
         raise RuntimeError("LLM kieltäytyi vastaamasta")
     return "".join(b.text for b in vastaus.content if b.type == "text").strip()
+
+
+def kirjaa_kaytto(malli: str, kesto: float, usage) -> None:
+    """Lokittaa yhden LLM-kutsun keston, tokenit ja hinnan; kasvattaa kertymää."""
+    if usage is None:
+        return
+    syote, tuloste = usage.input_tokens, usage.output_tokens
+    KAYTTO["syote"] += syote
+    KAYTTO["tuloste"] += tuloste
+    hinta = HINNAT.get(malli)
+    if hinta:
+        usd = syote * hinta[0] / 1e6 + tuloste * hinta[1] / 1e6
+        KAYTTO["usd"] += usd
+        LOKI.info("  vastaus %.1f s, %d + %d tokenia, %.4f $", kesto, syote, tuloste, usd)
+    else:
+        LOKI.info("  vastaus %.1f s, %d + %d tokenia (hinnasto ei tunne mallia %s)",
+                  kesto, syote, tuloste, malli)
 
 
 # LLM-tarjoajat: nimi -> täydennysfunktio(jarjestelma, sisalto, malli, max_tokens).
@@ -358,6 +399,7 @@ def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
     merkkijono, jos se ei näy sivulla. Tyhjä lista, jos sivulla ei ole
     joukkuelistaa.
     """
+    LOKI.info("LLM-kysely: ilmoittautuneet joukkueet (%s)", valitse_malli(malli))
     raaka = kysy_llm(
         "Poimit harrasteturnausten www-sivuilta turnaukseen ilmoittautuneet "
         "joukkueet. Vastaat aina pelkällä JSON-taulukolla ilman selityksiä "
@@ -379,6 +421,7 @@ def analysoi_llm(html: str, malli: str | None = None) -> dict:
     """Poimii turnauksen perustiedot LLM:llä; palauttaa saman muotoisen
     sanakirjan kuin analysoi(), joten muotoile() toimii kummankin tuloksella.
     """
+    LOKI.info("LLM-kysely: perustiedot (%s)", valitse_malli(malli))
     raaka = kysy_llm(
         "Poimit harrasteturnausten www-sivuilta turnauksen perustiedot. "
         "Vastaat aina pelkällä JSON-oliolla ilman selityksiä tai koodiaitoja.",
@@ -412,6 +455,7 @@ def analysoi_llm(html: str, malli: str | None = None) -> dict:
 
 def tiivista_llm(html: str, malli: str | None = None) -> str:
     """Tuottaa sivusta parin lauseen suomenkielisen tiivistelmän LLM:llä."""
+    LOKI.info("LLM-kysely: vapaamuotoinen tiivistelmä (%s)", valitse_malli(malli))
     return kysy_llm(
         "Tiivistät harrasteturnausten www-sivuja suomeksi. Vastaat aina "
         "pelkällä tiivistelmällä ilman johdantoa tai jälkisanoja.",
@@ -465,12 +509,22 @@ def main() -> int:
         help=f"LLM-malli (oletus TURNAUSLUOTAIN_MODEL tai {OLETUSMALLI})",
     )
     args = parser.parse_args()
+    logging.basicConfig(
+        stream=sys.stderr, level=logging.INFO,
+        format="%(asctime)s %(message)s", datefmt="%H:%M:%S",
+    )
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     lataa_env()
     try:
         print(tiivista(args.url, args.model))
     except requests.RequestException as virhe:
         print(f"Sivun haku epäonnistui: {virhe}", file=sys.stderr)
         return 1
+    if KAYTTO["syote"]:
+        LOKI.info(
+            "LLM-käyttö yhteensä: %d syöte- ja %d tulostetokenia, ~%.4f $",
+            KAYTTO["syote"], KAYTTO["tuloste"], KAYTTO["usd"],
+        )
     return 0
 
 
