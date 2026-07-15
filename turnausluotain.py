@@ -256,19 +256,37 @@ def etsi_joukkuelinkit(html: str, url: str) -> list[str]:
     return sorted(linkit, key=linkit.get)
 
 
-def etsi_joukkueet(url: str) -> list[str]:
+def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[str]:
+    """Poimii yhden sivun joukkueet: LLM:llä jos API-avain on asetettu,
+    muuten heuristiikoilla. LLM:n sanakirjat muotoillaan "Nimi (sarja)"
+    -riveiksi.
+    """
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        try:
+            joukkueet = poimi_joukkueet_llm(html, malli)
+        except (anthropic.AnthropicError, json.JSONDecodeError, KeyError):
+            joukkueet = []
+        if joukkueet:
+            return [
+                f"{j['nimi']} ({j['sarja']})" if j.get("sarja") else j["nimi"]
+                for j in joukkueet
+            ]
+    return poimi_joukkueet(html)
+
+
+def etsi_joukkueet(url: str, malli: str | None = None) -> list[str]:
     """Vaihe 2: etsii turnaussivulta ilmoittautuneet joukkueet.
 
     Katsoo ensin itse turnaussivun ja seuraa sitten linkkejä alasivuille
     tai ulkoisiin palveluihin, kunnes joukkuelista löytyy.
     """
     html = hae_sivu(url)
-    joukkueet = poimi_joukkueet(html)
+    joukkueet = poimi_joukkueet_sivulta(html, malli)
     if joukkueet:
         return joukkueet
     for linkki in etsi_joukkuelinkit(html, url):
         try:
-            joukkueet = poimi_joukkueet(hae_sivu(linkki))
+            joukkueet = poimi_joukkueet_sivulta(hae_sivu(linkki), malli)
         except requests.RequestException:
             continue
         if joukkueet:
