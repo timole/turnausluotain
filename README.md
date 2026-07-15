@@ -94,8 +94,8 @@ muuttujat voittavat `.env`:n.
 | `TURNAUSLUOTAIN_MODEL` | LLM-malli (esim. `claude-opus-4-8`). Komentorivin `--model` voittaa tämän. | `claude-haiku-4-5` |
 | `TURNAUSLUOTAIN_PROVIDER` | LLM-tarjoaja. Toistaiseksi vain `anthropic`; rajapinta tukee uusien tarjoajien (esim. paikallinen Ollama) lisäämistä `TAYDENTAJAT`-rekisteriin. | `anthropic` |
 
-Ajo Haikulla maksaa tyypillisesti noin 1–2 senttiä per turnaussivu
-(2 sivuhakua, 4 LLM-kutsua).
+Ajo Haikulla maksaa tyypillisesti noin 1–3 senttiä per turnaussivu
+(2 sivuhakua, 4 LLM-kutsua); tarkat luvut näkyvät ajolokista.
 
 ## Testit
 

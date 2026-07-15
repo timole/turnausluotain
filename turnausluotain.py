@@ -284,7 +284,7 @@ def poimi_joukkueet_sivulta(html: str, malli: str | None = None) -> list[str]:
     if os.environ.get("ANTHROPIC_API_KEY"):
         try:
             joukkueet = poimi_joukkueet_llm(html, malli)
-        except (anthropic.AnthropicError, json.JSONDecodeError, KeyError):
+        except (anthropic.AnthropicError, RuntimeError):
             joukkueet = []
         if joukkueet:
             return [
@@ -392,29 +392,49 @@ def jasenna_json(raaka: str):
     return json.loads(re.sub(r"^```\w*\s*|\s*```$", "", raaka))
 
 
+def jasenna_joukkuerivit(raaka: str) -> list[dict]:
+    """Jäsentää rivimuotoisen joukkuelistan ("sarja | nimi") sanakirjoiksi.
+
+    Rivit ilman |-erotinta ohitetaan, joten koodiaidat tai selitysteksti
+    ("Sivulla ei ole joukkuelistaa.") eivät päädy joukkueiksi.
+    """
+    joukkueet = []
+    for rivi in raaka.splitlines():
+        sarja, erotin, nimi = rivi.partition("|")
+        nimi = nimi.strip()
+        if erotin and nimi:
+            joukkueet.append({"nimi": nimi, "sarja": sarja.strip()})
+    return joukkueet
+
+
 def poimi_joukkueet_llm(html: str, malli: str | None = None) -> list[dict]:
     """Poimii sivulta ilmoittautuneet joukkueet LLM:llä.
 
     Palauttaa listan sanakirjoja {"nimi": ..., "sarja": ...}; sarja on tyhjä
     merkkijono, jos se ei näy sivulla. Tyhjä lista, jos sivulla ei ole
     joukkuelistaa.
+
+    Vastaus pyydetään riveinä eikä JSONina: sama tieto vie noin kolmasosan
+    tulostetokeneista, ja tämä on ajon kallein kutsu.
     """
     LOKI.info("LLM-kysely: ilmoittautuneet joukkueet (%s)", valitse_malli(malli))
     raaka = kysy_llm(
         "Poimit harrasteturnausten www-sivuilta turnaukseen ilmoittautuneet "
-        "joukkueet. Vastaat aina pelkällä JSON-taulukolla ilman selityksiä "
-        "tai koodiaitoja.",
+        "joukkueet. Vastaat aina pelkkänä rivilistana ilman selityksiä, "
+        "numerointia tai koodiaitoja.",
         "Poimi sivulta turnaukseen ilmoittautuneet tai osallistuvat "
-        "joukkueet. Palauta JSON-taulukko, jonka alkiot ovat muotoa "
-        '{"nimi": "...", "sarja": "..."}. Kirjoita sarja-kenttään '
-        "sarja tai lohko, johon joukkue kuuluu (esim. \"60+\"), tai "
-        "tyhjä merkkijono jos se ei käy ilmi. Älä keksi joukkueita: "
-        "jos sivulla ei ole joukkuelistaa, palauta [].",
+        "joukkueet, yksi joukkue riviä kohti, muodossa\n"
+        "sarja | nimi\n"
+        "esimerkiksi\n"
+        "60+ | Hiki-Hockey Seniors\n"
+        "Sarja on sarja tai lohko, johon joukkue kuuluu; jätä se tyhjäksi "
+        "(rivi alkaa |-merkillä), jos se ei käy ilmi. Älä keksi joukkueita: "
+        "jos sivulla ei ole joukkuelistaa, älä palauta yhtään riviä.",
         html,
         malli,
         max_tokens=4000,
     )
-    return jasenna_json(raaka)
+    return jasenna_joukkuerivit(raaka)
 
 
 def analysoi_llm(html: str, malli: str | None = None) -> dict:

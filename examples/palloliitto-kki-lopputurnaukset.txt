@@ -2,7 +2,7 @@ $ python turnausluotain.py https://www.palloliitto.fi/kilpailut/turnaukset-ja-lo
 
 TURNAUS: KKI-lopputurnaukset - Palloliitto.fi
 Laji:        jalkapallo
-Ajankohta:   kesä-syyskuu 2026 (5.6.-27.9.2026)
+Ajankohta:   kesä-syyskuu 2026 (heinä-syyskuu)
 Paikkakunta: useita paikkakuntia (Eerikkilä, Helsinki, Kuopio, Oulu)
 Sarjat:
   - N30 7v7
@@ -18,11 +18,11 @@ Sarjat:
   - M70 7v7
   - M75 7v7
 Ilmoittautuminen:
-  Ilmoittautuminen Taso-järjestelmään
-  M60-, M65-, M75-turnaukset: 1.6.2026 mennessä
-  Muut turnaukset: 28.6.2026 mennessä
-  Osallistumismaksu: 370 €/joukkue
-  Peruutus 30.6. jälkeen: 2 x osallistumismaksu
+  Ilmoittautuminen Tasoon: M60/M65/M75 1.6. mennessä, muut 28.6. mennessä
+  Osallistumismaksu 370 €/joukkue
+  SPL laskuttaa, maksu tilitetään järjestäjälle
+  Peruutus 30.6. jälkeen tai <4 viikkoa ennen turnausta: luovutusmaksu 2 x osallistumismaksu
+  Ulla Kaasinen +358405073211, ulla.kaasinen@palloliitto.fi
 Ilmoittautuneet joukkueet (91):
   - Esse IK 35 (M35 SM)
   - FC Kiffen (M35 SM)
@@ -31,7 +31,7 @@ Ilmoittautuneet joukkueet (91):
   - Pöxyt (M35 SM)
   - Tikka (M35 SM)
   - FC HUKI (M40 SM)
-  - FC Kiffen (M40 SM)
+  - FC Kiffen (1) (M40 SM)
   - HJK/igis (M40 SM)
   - IF Gnistan (M40 SM)
   - PJK (M40 SM)
@@ -39,7 +39,7 @@ Ilmoittautuneet joukkueet (91):
   - Pöxyt (M40 SM)
   - Real Kokkola (M40 SM)
   - Sibbo-Vargarna (M40 SM)
-  - Valtti (M40 SM)
+  - Valtti (1) (M40 SM)
   - FC Kiffen (M45 SM)
   - IF Gnistan (M45 SM)
   - Iltatähti (M45 SM)
@@ -47,11 +47,11 @@ Ilmoittautuneet joukkueet (91):
   - No Stars (M45 SM)
   - PJK (M45 SM)
   - Pöxyt/PuPa (M45 SM)
-  - Valtti (M45 SM)
+  - Valtti (1) (M45 SM)
   - FC Fortuna/Helsinki/itä (M45 SM 7v7)
   - FC Kiffen (M45 SM 7v7)
   - FC Kontu (M45 SM 7v7)
-  - FC POHU (M45 SM 7v7)
+  - FC POHU (5) (M45 SM 7v7)
   - HJS (M45 SM 7v7)
   - HooGee/Hodari (M45 SM 7v7)
   - IF Gnistan (M45 SM 7v7)
@@ -81,14 +81,14 @@ Ilmoittautuneet joukkueet (91):
   - Ilves/55 (M55 SM)
   - No Stars (M55 SM)
   - PK-50/I-HK (M55 SM)
-  - Ponnistus/Telakka (M55 SM)
+  - Ponnistus/Telakka (1) (M55 SM)
   - PuPa (M55 SM)
   - Universtas (M55 SM)
   - Valtti (M55 SM)
   - Iltatähti (M60 SM)
   - Ilves/60 (M60 SM)
   - No Stars (M60 SM)
-  - Ponnistus/Telakka (M60 SM)
+  - Ponnistus/Telakka (1) (M60 SM)
   - PuPa (M60 SM)
   - Valtti/Gnistan (M60 SM)
   - Dicken (M65 SM)
@@ -96,18 +96,18 @@ Ilmoittautuneet joukkueet (91):
   - Iltatähti (M65 SM)
   - Ilves/65 (M65 SM)
   - KelA (M65 SM)
-  - KUV (M65 SM)
+  - KUV (1) (M65 SM)
   - Valtti (M65 SM)
   - WJK/Aikamiehet (M65 SM)
-  - FC Lohja (M70 SM)
-  - IFK Mariehamn (M70 SM)
-  - Iltatähti (M70 SM)
-  - Kamppi (M70 SM)
-  - KaVo (M70 SM)
-  - Pallas/Konkarit (M70 SM)
-  - PoPa/Wanhat Herrat (M70 SM)
-  - Valtti (M70 SM)
-  - WJK/Aikamiehet (M70 SM)
+  - FC Lohja (Pekka Hämäläinen M70 SM)
+  - IFK Mariehamn (Pekka Hämäläinen M70 SM)
+  - Iltatähti (Pekka Hämäläinen M70 SM)
+  - Kamppi (Pekka Hämäläinen M70 SM)
+  - KaVo (Pekka Hämäläinen M70 SM)
+  - Pallas/Konkarit (Pekka Hämäläinen M70 SM)
+  - PoPa/Wanhat Herrat (Pekka Hämäläinen M70 SM)
+  - Valtti (Pekka Hämäläinen M70 SM)
+  - WJK/Aikamiehet (Pekka Hämäläinen M70 SM)
   - FC Lohja/M75 (M75 - Suomen herruus)
   - Kamppi (M75 - Suomen herruus)
   - KäPa (M75 - Suomen herruus)
@@ -116,18 +116,18 @@ Ilmoittautuneet joukkueet (91):
   - RaKe/Nostalgia (N30 SM)
   - TuWe/3 (N30 SM)
 LLM-tiivistelmä (claude-haiku-4-5):
-  Suomen Palloliitto järjestää vuosittain kesä-syyskuussa jalkapallon Kunnossa Kaiken Ikää (KKI) SM-lopputurnauksia, joissa pelataan sekä 11v11- että 7v7-pelimuodolla. Turnaukset on suunnattu miehille 35–75-vuotiaille ja naisille 30–40-vuotiaille, ja ne järjestetään eri puolilla Suomea osallistuneiden seurojen toimesta.
+  Suomen Palloliitto järjestää vuosittain kesä-syyskuussa KKI-lopputurnauksia, joissa pelataan jalkapallon SM-tasoisesti eri ikäluokissa. Turnaukset on suunnattu 30 vuotta täyttäneille naisille ja 35 vuotta täyttäneille miehille, ja ne järjestetään eri puolilla Suomea useissa paikkakunnissa kuten Helsingin, Kuopion, Oulussa ja Eerikkilässä.
 
 --- Ajoloki (stderr) ---
-09:14:48 haettu https://www.palloliitto.fi/kilpailut/turnaukset-ja-lopputurnaukset/kki-lopputurnaukset (0.7 s, 536 kt)
-09:14:48 LLM-kysely: perustiedot (claude-haiku-4-5)
-09:14:52   vastaus 3.9 s, 5862 + 342 tokenia, 0.0076 $
-09:14:53 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
-09:14:54   vastaus 0.8 s, 5740 + 9 tokenia, 0.0058 $
-09:14:54 joukkueita ei pääsivulla, seurataan linkkiä https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26
-09:14:54 haettu https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26 (0.6 s, 54 kt)
-09:14:54 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
-09:15:04   vastaus 9.4 s, 978 + 2164 tokenia, 0.0118 $
-09:15:04 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
-09:15:07   vastaus 3.0 s, 5641 + 138 tokenia, 0.0063 $
-09:15:07 LLM-käyttö yhteensä: 18221 syöte- ja 2653 tulostetokenia, ~0.0315 $
+12:39:32 haettu https://www.palloliitto.fi/kilpailut/turnaukset-ja-lopputurnaukset/kki-lopputurnaukset (0.4 s, 536 kt)
+12:39:32 LLM-kysely: perustiedot (claude-haiku-4-5)
+12:39:37   vastaus 4.6 s, 5862 + 354 tokenia, 0.0076 $
+12:39:37 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+12:39:40   vastaus 2.0 s, 5749 + 74 tokenia, 0.0061 $
+12:39:41 joukkueita ei pääsivulla, seurataan linkkiä https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26
+12:39:42 haettu https://taso.palloliitto.fi/taso/ilmoittautuneet.php?turnaus=splkki26 (1.1 s, 54 kt)
+12:39:42 LLM-kysely: ilmoittautuneet joukkueet (claude-haiku-4-5)
+12:39:47   vastaus 5.4 s, 987 + 1187 tokenia, 0.0069 $
+12:39:47 LLM-kysely: vapaamuotoinen tiivistelmä (claude-haiku-4-5)
+12:39:50   vastaus 2.7 s, 5641 + 142 tokenia, 0.0064 $
+12:39:50 LLM-käyttö yhteensä: 18239 syöte- ja 1757 tulostetokenia, ~0.0270 $
